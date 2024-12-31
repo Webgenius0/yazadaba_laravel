@@ -24,6 +24,7 @@ class CurriculumController extends Controller
             if ($user->role !== 'teacher') {
                 return Helper::jsonResponse(false, 'Access denied. User is not a teacher.', 403, []);
             }
+
             $course = Course::with(['courseModules', 'category', 'gradeLevel']) ->where('user_id', $user->id)
                 ->where('status', 'inactive')->find($curriculum);
 
@@ -90,16 +91,17 @@ class CurriculumController extends Controller
                     'total_course_duration' => $course->course_duration,
                     'course_modules' => $course->courseModules,
                     'ratings' => $course->ratings->map(function ($rating) {
+                        $user = $rating->user;
                         $timeSinceCreated = $rating->created_at->diffForHumans();
                         return [
                             'user_id' => $rating->user_id,
+                            'user_name' => $user->name ??'User not found',
+                            'avatar' => $user->avatar ?? null,
                             'review' => $rating->review,
                             'rating' => $rating->rating,
                             'created_at' => $timeSinceCreated,
                         ];
                     }),
-
-
                 ],
             ];
             return Helper::jsonResponse(true, 'Course Curriculum retrieved successfully.', 200, $courseData);

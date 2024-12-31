@@ -214,72 +214,81 @@ class HomeController extends Controller
         ]);
     }
 
-    public function sales(Request $request): \Illuminate\Http\JsonResponse
+    public function sales(Request $request)
     {
         try {
             $user = Auth::user();
 
-            if (!$user) {
-                return Helper::jsonErrorResponse('User not authenticated.', 401);
+            // Ensure user is authenticated and is a teacher
+            if (!$user || $user->role !== 'teacher') {
+                return response()->json(['error' => 'Unauthorized'], 403);
             }
 
-            // Check if the user is a teacher
-            if ($user->role !== 'teacher') {
-                return Helper::jsonErrorResponse('Access denied. User is not a teacher.', 403);
-            }
-
-            $totalCourses = Course::where('user_id', auth()->id())->count();
-            $totalReviews = Review::where('user_id', auth()->id())->count();
-            $courses = Course::where('user_id', auth()->id())->pluck('id');
-            $totalPrice = Course::where('user_id', auth()->id())->sum('price');
+            // Get total statistics for the authenticated teacher's courses
+            $courses = Course::where('user_id', $user->id)->pluck('id');
+            $totalCourses = $courses->count();
+            $totalReviews = Review::where('user_id', $user->id)->count();
+            $totalPrice = Course::where('user_id', $user->id)->sum('price');
             $totalEarning = CourseEnroll::whereIn('course_id', $courses)->sum('amount');
-
-            // Get the total student count for the selected courses
             $totalStudentCount = CourseEnroll::whereIn('course_id', $courses)->count();
 
-            // Define the months you're interested in (Jan, Mar, May, Jul, Sep, Nov, Dec)
-            $months = [1,2, 3,4, 5,6, 7,8, 9,10, 11, 12];
+            // Get the year and month from the request, defaulting to current year
+            $year = $request->input('year', Carbon::now()->year);
+            $month = $request->input('month', null);
 
-            // Get the current year and month
-            $currentYear = Carbon::now()->year;
-            $currentMonth = Carbon::now()->month;
+            if ($month) {
+                // Weekly sales data for a specific month
+                $startOfMonth = Carbon::create($year, $month, 1);
+                $weeksInMonth = ceil($startOfMonth->daysInMonth / 7);
+                $salesReview = [];
 
-            // Fetch the total amounts for each of the specified months
-            $courseGraph = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')
-                ->whereYear('created_at', $currentYear)
-                ->whereIn(DB::raw('MONTH(created_at)'), $months)
+                for ($week = 1; $week <= $weeksInMonth; $week++) {
+                    $weekStart = $startOfMonth->copy()->addWeeks($week - 1)->startOfWeek();
+                    $weekEnd = min($weekStart->copy()->endOfWeek(), $startOfMonth->copy()->endOfMonth());
+                    $weekAmount = CourseEnroll::whereIn('course_id', $courses)
+                        ->where('status', 'completed')
+                        ->whereBetween('created_at', [$weekStart, $weekEnd])
+                        ->sum('amount');
+
+                    $salesReview[] = ['week' => $week, 'amount' => $weekAmount];
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Weekly sales data retrieved successfully.',
+                    'data' => compact('totalCourses', 'totalReviews', 'totalPrice', 'totalEarning', 'totalStudentCount', 'salesReview')
+                ], 200);
+            }
+
+            // Monthly sales data for a specific year
+            $courseGraph = CourseEnroll::whereIn('course_id', $courses)
+                ->where('status', 'completed')
+                ->whereYear('created_at', $year)
                 ->selectRaw('MONTH(created_at) as month, SUM(amount) as total_amount')
                 ->groupBy('month')
                 ->orderBy('month')
                 ->get()
                 ->keyBy('month')
-                ->mapWithKeys(function ($item) {
-                    return [$item->month => $item->total_amount];
-                });
+                ->mapWithKeys(fn($item) => [$item->month => $item->total_amount]);
 
-            // Prepare the final result, including the current year and month
-            $allMonths = [1,2, 3,4, 5,6, 7,8, 9,10, 11, 12];
-            $courseGraphData = array_map(static function ($month) use ($courseGraph, $currentYear) {
-                return [
-                    'year' => $currentYear,
-                    'month' => Carbon::create()->month($month)->format('M'),
-                    'amount' => $courseGraph[$month] ?? 0,
-                ];
-            }, $allMonths);
-
-            // Return all data in the response
-            return Helper::jsonResponse(true, 'Courses retrieved successfully.', 200, [
-                'total_courses' => $totalCourses,
-                'total_reviews' => $totalReviews,
-                'total_price' => $totalPrice,
-                'total_earning' => $totalEarning,
-                'total_student_count' => $totalStudentCount,
-                'sales_review' => $courseGraphData,
+            $courseGraphData = collect(range(1, 12))->map(fn($month) => [
+                'year' => $year,
+                'month' => Carbon::create($year, $month)->format('M'),
+                'amount' => $courseGraph[$month] ?? 0,
             ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Monthly sales data retrieved successfully.',
+                'data' => compact('totalCourses', 'totalReviews', 'totalPrice', 'totalEarning', 'totalStudentCount', 'courseGraphData')
+            ], 200);
+
         } catch (Exception $e) {
             Log::error($e->getMessage());
-            return Helper::jsonErrorResponse($e->getMessage(), 500);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+
 
 }

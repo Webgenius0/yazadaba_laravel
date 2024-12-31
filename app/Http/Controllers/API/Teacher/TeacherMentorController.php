@@ -91,9 +91,12 @@ class TeacherMentorController extends Controller
                         'course_price' => $course->course_price,
                         'total_course_duration' => $course->course_duration,
                         'ratings' => $course->ratings->map(function ($rating) {
+                            $user = $rating->user;
                             $timeSinceCreated = $rating->created_at->diffForHumans();
                             return [
                                 'user_id' => $rating->user_id,
+                                'user_name' => $user->name ?? 'User not found',
+                                'avatar' => $user->avatar ?? null,
                                 'review' => $rating->review,
                                 'rating' => $rating->rating,
                                 'created_at' => $timeSinceCreated,
