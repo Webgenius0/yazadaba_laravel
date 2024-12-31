@@ -30,20 +30,30 @@ class HomeController extends Controller
         if ($user->role !== 'teacher') {
             return Helper::jsonResponse(false, 'Access denied. User is not a teacher.', 403, []);
         }
+
+        // Fetch course categories
         $CourseCategory = Category::all()->makeHidden(['created_at', 'updated_at', 'status']);
+
+        // Check if categories exist
         if ($CourseCategory->isEmpty()) {
             return Helper::jsonErrorResponse('Course category does not exist.', 200, []);
         }
+
+        // Fetch courses belonging to the authenticated user (teacher)
         $Courses = Course::where('user_id', $user->id)
-            ->withCount('reviews')
-            ->withAvg('reviews', 'rating')
             ->get()
             ->map(function ($course) {
+                // Count the number of reviews for the current course
+                $reviewsCount = DB::table('reviews')
+                    ->where('course_id', $course->id)
+                    ->count(); // Counts reviews for the course based on course_id
 
+                // Calculate the total duration of the course in seconds
                 $totalDurationInSeconds = DB::table('course_modules')
                     ->where('course_id', $course->id)
                     ->sum(DB::raw('TIME_TO_SEC(module_video_duration)'));
 
+                // Format the total duration
                 if ($totalDurationInSeconds < 60) {
                     $formattedDuration = "{$totalDurationInSeconds} sec";
                 } elseif ($totalDurationInSeconds < 3600) {
@@ -51,21 +61,32 @@ class HomeController extends Controller
                 } else {
                     $formattedDuration = floor($totalDurationInSeconds / 3600) . " hours";
                 }
-                // Update the course's course_duration field in the database
+
+                // Add the calculated duration and reviews count to the course
                 $course->course_duration = $formattedDuration;
+                $course->reviews_count = $reviewsCount;  // Reviews count specific to this course
                 $course->reviews_avg_rating = round($course->reviews_avg_rating ?? 0, 1);
+
+                // Fetch user details (name and avatar)
                 $course->user_id = DB::table('users')->where('id', $course->user_id)->value('name');
+                $course->avatar = DB::table('users')->where('id', $course->user_id)->value('avatar');
+
+                // Fetch course category name and grade level name
                 $course->category_id = DB::table('categories')->where('id', $course->category_id)->value('name');
                 $course->grade_level_id = DB::table('grade_levels')->where('id', $course->grade_level_id)->value('name');
 
                 return $course;
             });
+
+        // If no courses are found
         if ($Courses->isEmpty()) {
             return Helper::jsonResponse(true, 'Categories retrieved successfully, but no courses available.', 200, [
                 'category' => $CourseCategory,
                 'courses' => [],
             ]);
         }
+
+        // Return the response with courses and categories
         return Helper::jsonResponse(true, 'Courses and Categories retrieved successfully.', 200, [
             'category' => $CourseCategory,
             'courses' => $Courses->makeHidden(['created_at', 'updated_at', 'status', 'deleted_at']),
@@ -116,6 +137,7 @@ class HomeController extends Controller
 
                 // Fetch related data like teacher's name, category, and grade level
                 $course->user_id = DB::table('users')->where('id', $course->user_id)->value('name');
+                $course->avatar = DB::table('users')->where('id', $course->user_id)->value('avatar');
                 $course->category_id = DB::table('categories')->where('id', $course->category_id)->value('name');
                 $course->grade_level_id = DB::table('grade_levels')->where('id', $course->grade_level_id)->value('name');
                 return $course;
@@ -176,6 +198,7 @@ class HomeController extends Controller
 
                 $course->reviews_avg_rating = round($course->reviews_avg_rating ?? 0, 1);
                 $course->user_id = DB::table('users')->where('id', $course->user_id)->value('name');
+                $course->avatar = DB::table('users')->where('id', $course->user_id)->value('avatar');
                 $course->category_id = DB::table('categories')->where('id', $course->category_id)->value('name');
                 $course->grade_level_id = DB::table('grade_levels')->where('id', $course->grade_level_id)->value('name');
 
@@ -258,10 +281,5 @@ class HomeController extends Controller
             return Helper::jsonErrorResponse($e->getMessage(), 500);
         }
     }
-
-
-
-
-    dfsfsdfgv
 
 }

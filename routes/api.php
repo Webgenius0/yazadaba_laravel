@@ -125,6 +125,7 @@ Route::group(['middleware' => 'auth:api'], static function () {
 
     Route::post('/enroll', [\App\Http\Controllers\API\Student\EnrollController::class, 'enroll']);
     Route::post('/is-complete', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'isComplete']);
+//    Route::post('/review', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'review']);
 
 });
 
