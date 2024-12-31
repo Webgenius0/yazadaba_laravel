@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Http\Controllers\API\Teacher;
+
+use App\Helpers\Helper;
+use App\Http\Controllers\Controller;
+use App\Models\Course;
+use App\Models\CourseEnroll;
+use App\Models\Review;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
+class TeacherMentorController extends Controller
+{
+    public function index(): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return Helper::jsonErrorResponse('User not authenticated.', 401);
+            }
+
+            if ($user->role !== 'teacher') {
+                return Helper::jsonResponse(false, 'Access denied. User is not a teacher.', 403, []);
+            }
+
+            $totalCourses = Course::where('user_id', $user->id)->count();
+
+            $totalReviews = (float)round(Review::join('courses', 'reviews.course_id', '=', 'courses.id')
+                ->where('courses.user_id', $user->id)
+                ->avg('reviews.rating') ?? 0.0, 1);
+
+            $totalStudents = 0;
+
+            $courses = Course::with(['category', 'gradeLevel'])
+                ->where('user_id', $user->id)
+                ->where('status', 'inactive')
+                ->get()
+                ->map(function ($course) {
+                    // Sum the module video durations for the course
+                    $totalDurationInSeconds = DB::table('course_modules')
+                        ->where('course_id', $course->id)
+                        ->sum(DB::raw('TIME_TO_SEC(module_video_duration)'));
+
+                    if ($totalDurationInSeconds < 60) {
+                        $formattedDuration = "{$totalDurationInSeconds} sec";
+                    } elseif ($totalDurationInSeconds < 3600) {
+                        $formattedDuration = floor($totalDurationInSeconds / 60) . " min";
+                    } else {
+                        $formattedDuration = floor($totalDurationInSeconds / 3600) . " hours";
+                    }
+                    $course->course_duration = $formattedDuration;
+                    // Calculate the total ratings and average rating for the course
+                    $course->total_ratings = $course->reviews()->count();
+                    $course->average_rating = (float)round($course->reviews()->avg('rating') ?? 0.0, 1);
+
+                    // Add category and grade level names
+                    $course->category_name = $course->category->name ?? null;
+                    $course->grade_level_name = $course->gradeLevel->name ?? null;
+
+                    // Fetch the reviews and ratings for the course
+                    $course->ratings = $course->reviews()->select('user_id', 'review', 'rating', 'created_at')->get();
+
+                    return $course;
+                });
+
+            $courses->makeHidden(['created_at', 'updated_at', 'deleted_at', 'description', 'status']);
+
+            $data = [
+                'total_courses' => $totalCourses,
+                'total_reviews' => $totalReviews,
+                'total_students' => $totalStudents,
+                'user_details' => [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'avatar' => $user->avatar,
+                    'role' => $user->role,
+                ],
+                'courses' => $courses->map(function ($course) {
+                    return [
+                        'id' => $course->id,
+                        'name' => $course->name,
+                        'cover_image' => $course->cover_image,
+                        'category_name' => $course->category_name,
+                        'grade_level_name' => $course->grade_level_name,
+                        'total_ratings' => $course->total_ratings,
+                        'average_rating' => $course->average_rating,
+                        'course_price' => $course->course_price,
+                        'total_course_duration' => $course->course_duration,
+                        'ratings' => $course->ratings->map(function ($rating) {
+                            $timeSinceCreated = $rating->created_at->diffForHumans();
+                            return [
+                                'user_id' => $rating->user_id,
+                                'review' => $rating->review,
+                                'rating' => $rating->rating,
+                                'created_at' => $timeSinceCreated,
+                            ];
+                        }),
+                    ];
+                }),
+            ];
+
+            return Helper::jsonResponse(true, 'Data Fetch Successfully', 200, $data);
+
+        } catch (Exception $e) {
+            return Helper::jsonErrorResponse('An error occurred: ' . $e->getMessage(), 500);
+        }
+    }
+}
