@@ -87,7 +87,11 @@ Route::group(['middleware' => 'auth:api'], static function () {
 
 
     Route::controller(ResourceValueController::class)->prefix('home')->group(function () {
+        Route::get('/resource/value', 'index');
         Route::get('/resource/performance/metrics', 'RevenueBreakdown');
+        Route::get('/enroll/complete/breakdown', 'EnrollmentCompletionBreakdown');
+        Route::get('/revenue/trade/growth', 'RevenueTrendsGrowthIndicator');
+
     });
 
 

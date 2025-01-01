@@ -65,8 +65,7 @@ class HomeController extends Controller
                 // Add the calculated duration and reviews count to the course
                 $course->course_duration = $formattedDuration;
                 $course->reviews_count = $reviewsCount;  // Reviews count specific to this course
-                $course->reviews_avg_rating = round($course->reviews_avg_rating ?? 0, 1);
-
+                $course->reviews_avg_rating = round((float) ($course->reviews_avg_rating ?? 0.0), 1);
                 // Fetch user details (name and avatar)
                 $course->user_id = DB::table('users')->where('id', $course->user_id)->value('name');
                 $course->avatar = DB::table('users')->where('id', $course->user_id)->value('avatar');
@@ -228,9 +227,9 @@ class HomeController extends Controller
             $courses = Course::where('user_id', $user->id)->pluck('id');
             $totalCourses = $courses->count();
             $totalReviews = Review::where('user_id', $user->id)->count();
-            $totalPrice = Course::where('user_id', $user->id)->sum('price');
+            $totalResourceValue = Course::where('user_id', $user->id)->sum('price');
             $totalEarning = CourseEnroll::whereIn('course_id', $courses)->sum('amount');
-            $totalStudentCount = CourseEnroll::whereIn('course_id', $courses)->count();
+            $totalStudentEnroll = CourseEnroll::whereIn('course_id', $courses)->count();
 
             // Get the year and month from the request, defaulting to current year
             $year = $request->input('year', Carbon::now()->year);
@@ -274,7 +273,7 @@ class HomeController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Weekly sales data retrieved successfully.',
-                    'data' => compact('totalCourses', 'totalReviews', 'totalPrice', 'totalEarning', 'totalStudentCount', 'salesReview')
+                    'data' => compact('totalCourses', 'totalReviews', 'totalResourceValue', 'totalEarning', 'totalStudentEnroll', 'salesReview')
                 ], 200);
             }
 

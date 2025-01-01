@@ -98,7 +98,7 @@ class TeacherMentorController extends Controller
                                 'user_name' => $user->name ?? 'User not found',
                                 'avatar' => $user->avatar ?? null,
                                 'review' => $rating->review,
-                                'rating' => $rating->rating,
+                                'rating' => (float) number_format($rating->rating, 1, '.', ''),
                                 'created_at' => $timeSinceCreated,
                             ];
                         }),

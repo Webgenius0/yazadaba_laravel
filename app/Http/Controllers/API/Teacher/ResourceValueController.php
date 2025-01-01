@@ -8,11 +8,65 @@ use App\Models\Course;
 use App\Models\CourseEnroll;
 use App\Models\Review;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use TusPhp\Response;
 
 class ResourceValueController extends Controller
 {
+    public function index(){
+        try {
+            $user = Auth::user();
+
+            // Ensure user is authenticated and is a teacher
+            if (!$user || $user->role !== 'teacher') {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+
+            // Get total statistics for the authenticated teacher's courses
+            $courses = Course::where('user_id', $user->id)->pluck('id');
+            $totalResourceValue = Course::where('user_id', $user->id)->sum('price');
+            $averageResourceValue = Course::where('user_id', $user->id)->count()
+                ? number_format(Course::where('user_id', $user->id)->sum('price') / Course::where('user_id', $user->id)->count(), 2)
+                : 0.00;
+            $totalResourceSold = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')->count();
+            $totalResourceSoldValue = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')->sum('amount');
+            $totalStudentEnroll = CourseEnroll::whereIn('course_id', $courses)->count();
+            $averageEnrollPerResources = count($courses) > 0
+                ? CourseEnroll::whereIn('course_id', $courses)->count() / count($courses)
+                : 0;
+            $newEnrollResources = CourseEnroll::whereIn('course_id', $courses)
+                ->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+                ->count();
+            $topEnrollCourse = CourseEnroll::select('course_id', DB::raw('count(*) as enrollments'))
+                ->groupBy('course_id')
+                ->orderByDesc('enrollments')
+                ->first();
+
+            $topEnrollAmount = $topEnrollCourse
+                ? $topEnrollCourse->enrollments * Course::find($topEnrollCourse->course_id)->price
+                : 0;
+            $data=[
+                'totalResourceValue' => $totalResourceValue,
+                'averageResourceValue' => $averageResourceValue,
+                'totalResourceSold' => $totalResourceSold,
+                'totalResourceSoldValue' => $totalResourceSoldValue,
+                'totalStudentEnroll' => $totalStudentEnroll,
+                'averageEnrollPerResources' => $averageEnrollPerResources,
+                'newEnrollResources' => $newEnrollResources,
+                'topEnrollAmount' => $topEnrollAmount,
+                'topEnrollAmountValue' => $topEnrollAmount,
+
+            ];
+            return Helper::jsonResponse(true ,'Resource Value Fetch successfully',200,$data);
+        }catch (Exception $e){
+            Log::error($e->getMessage());
+            return Helper::jsonResponse(false,' Error',500);
+        }
+    }
     public function RevenueBreakdown(Request $request): \Illuminate\Http\JsonResponse
     {
         $user = Auth::user();
@@ -86,4 +140,92 @@ class ResourceValueController extends Controller
             'data' => $result
         ], 200);
     }
+    public function EnrollmentCompletionBreakdown(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $user = Auth::user();
+
+        // Ensure the user is authenticated and is a teacher
+        if (!$user || $user->role !== 'teacher') {
+            return Helper::jsonErrorResponse('Access denied. User not authenticated or not a teacher.', 403);
+        }
+
+        // Get courses of the user
+        $courses = Course::where('user_id', auth()->id())->pluck('id');
+
+        // Get selected year and month from the request
+        $selectedYear = $request->input('year', Carbon::now()->year);
+        $selectedMonth = $request->input('month', null);
+
+        // Validate future year or month
+        if ($selectedYear > Carbon::now()->year || ($selectedYear == Carbon::now()->year && $selectedMonth > Carbon::now()->month)) {
+            return Helper::jsonErrorResponse('Selected year or month is in the future.', 400);
+        }
+
+        // Prepare the result for both completions and enrollments
+        $result = [];
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        // If month is selected, get weekly data; otherwise, yearly data
+        if ($selectedMonth !== null) {
+            // Get weekly breakdown for completions
+            $startDate = Carbon::createFromDate($selectedYear, $selectedMonth, 1);
+            $endDate = $startDate->copy()->endOfMonth();
+
+            for ($weekNumber = 1; $startDate->lte($endDate); $weekNumber++) {
+                $weekStart = $startDate->copy()->startOfWeek();
+                $weekEnd = $startDate->copy()->endOfWeek();
+
+                // Get completions for this week from i_s_completes table
+                $completedCount = DB::table('i_s_completes')
+                    ->whereIn('course_id', $courses)
+                    ->whereBetween('created_at', [$weekStart, $weekEnd])
+                    ->where('status', 'complete')
+                    ->count();
+
+                // Get total amount of enrollments for this week from course_enrolls table
+                $enrolledAmount = DB::table('course_enrolls')
+                    ->whereIn('course_id', $courses)
+                    ->whereBetween('created_at', [$weekStart, $weekEnd])
+                    ->sum('amount');
+
+                // Store data for total completions and enrollments (with amount) for the week
+                $result['totalCompletions'][] = ['year' => $selectedYear, 'week' => $weekNumber, 'count' => $completedCount];
+                $result['totalEnrollments'][] = ['year' => $selectedYear, 'week' => $weekNumber, 'amount' => $enrolledAmount];
+
+                // Move to the next week
+                $startDate->addWeek();
+            }
+        } else {
+            // Get monthly breakdown for completions
+            foreach ($months as $index => $monthName) {
+                $monthStart = Carbon::createFromDate($selectedYear, $index + 1, 1);
+                $monthEnd = $monthStart->copy()->endOfMonth();
+
+                // Get completions for this month from i_s_completes table
+                $completedCount = DB::table('i_s_completes')
+                    ->whereIn('course_id', $courses)
+                    ->whereBetween('created_at', [$monthStart, $monthEnd])
+                    ->where('status', 'complete')
+                    ->count();
+
+                // Get total amount of enrollments for this month from course_enrolls table
+                $enrolledAmount = DB::table('course_enrolls')
+                    ->whereIn('course_id', $courses)
+                    ->whereBetween('created_at', [$monthStart, $monthEnd])
+                    ->sum('amount');
+
+                // Store data for total completions and enrollments (with amount) for the month
+                $result['totalCompletions'][] = ['year' => $selectedYear, 'month' => $monthName, 'amount' => $completedCount];
+                $result['totalEnrollments'][] = ['year' => $selectedYear, 'month' => $monthName, 'amount' => $enrolledAmount];
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => $selectedMonth !== null ? 'Monthly Enrollment and Completion Breakdown retrieved successfully' : 'Yearly Enrollment and Completion Breakdown retrieved successfully',
+            'code' => 200,
+            'data' => $result
+        ], 200);
+    }
+
 }

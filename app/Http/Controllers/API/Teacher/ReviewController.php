@@ -56,7 +56,7 @@ class ReviewController extends Controller
                         'user_name' => $review->user ? $review->user->name : 'User not found',
                         'user_avatar' => $review->user ? $review->user->avatar : null,
                         'review' => $review->review,
-                        'rating' => $review->rating,
+                        'rating' => (float) number_format($review->rating, 1, '.', ''),
                         'created_at' => $review->created_at->diffForHumans(),
                     ];
                 }),
