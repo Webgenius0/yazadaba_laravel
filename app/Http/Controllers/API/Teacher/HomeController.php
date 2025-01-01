@@ -237,20 +237,38 @@ class HomeController extends Controller
             $month = $request->input('month', null);
 
             if ($month) {
-                // Weekly sales data for a specific month
-                $startOfMonth = Carbon::create($year, $month, 1);
-                $weeksInMonth = ceil($startOfMonth->daysInMonth / 7);
+                // Weekly sales data for a specific month and year
+                $startOfMonth = Carbon::create($year, $month, 1); // Force the start of the month to the 1st
+                $endOfMonth = $startOfMonth->copy()->endOfMonth(); // Get the end of the month
+                $weeksInMonth = $startOfMonth->diffInWeeks($endOfMonth); // Get the number of weeks in the month
+
                 $salesReview = [];
+                $weekStart = $startOfMonth->copy(); // Set the start of the first week to the 1st of the month
 
                 for ($week = 1; $week <= $weeksInMonth; $week++) {
-                    $weekStart = $startOfMonth->copy()->addWeeks($week - 1)->startOfWeek();
-                    $weekEnd = min($weekStart->copy()->endOfWeek(), $startOfMonth->copy()->endOfMonth());
+                    // Ensure the week end doesn't go beyond the end of the month
+                    $weekEnd = $weekStart->copy()->addDays(6); // 7 days per week (6 days after the start)
+
+                    if ($weekEnd->greaterThan($endOfMonth)) {
+                        $weekEnd = $endOfMonth; // Cap the week end to the end of the month
+                    }
+
+                    // Sum the total earnings for the week
                     $weekAmount = CourseEnroll::whereIn('course_id', $courses)
                         ->where('status', 'completed')
                         ->whereBetween('created_at', [$weekStart, $weekEnd])
                         ->sum('amount');
 
-                    $salesReview[] = ['week' => $week, 'amount' => $weekAmount];
+                    // Add weekly data to the salesReview array
+                    $salesReview[] = [
+                        'week' => $week,
+                        'week_start' => $weekStart->toDateString(),
+                        'week_end' => $weekEnd->toDateString(),
+                        'amount' => $weekAmount,
+                    ];
+
+                    // Move to the next week (7 days later)
+                    $weekStart = $weekStart->addWeek(); // Add one week
                 }
 
                 return response()->json([
@@ -288,7 +306,4 @@ class HomeController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
-
-
 }
