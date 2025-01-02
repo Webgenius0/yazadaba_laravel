@@ -245,8 +245,8 @@ class HomeController extends Controller
                 $weekStart = $startOfMonth->copy(); // Set the start of the first week to the 1st of the month
 
                 for ($week = 1; $week <= $weeksInMonth; $week++) {
-                    // Ensure the week end doesn't go beyond the end of the month
-                    $weekEnd = $weekStart->copy()->addDays(6); // 7 days per week (6 days after the start)
+
+                    $weekEnd = $weekStart->copy()->addDays(6);
 
                     if ($weekEnd->greaterThan($endOfMonth)) {
                         $weekEnd = $endOfMonth; // Cap the week end to the end of the month

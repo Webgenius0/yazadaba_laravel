@@ -6,6 +6,9 @@ use App\Http\Controllers\Web\Backend\CategoryController;
 use App\Http\Controllers\Web\Backend\CoursesController;
 use App\Http\Controllers\Web\Backend\GradeLevelController;
 use App\Http\Controllers\Web\Backend\SystemSettingController;
+use App\Http\Controllers\Web\Backend\WithdrawCompleteController;
+use App\Http\Controllers\Web\Backend\WithdrawRejectController;
+use App\Http\Controllers\Web\Backend\WithdrawRequestController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +58,35 @@ Route::controller(CoursesController::class)->prefix('admin/course')->name('admin
     Route::get('/{course}', 'show')->name('show');
 });
 // Course all route end
+
+// Withdraw Request all route start
+
+Route::controller(WithdrawRequestController::class)->prefix('admin/withdraw/request')->name('admin.withdraw.request.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::delete('/{id}', 'destroy')->name('destroy');
+    Route::get('status/{id}', 'status')->name('status');
+    Route::get('/{id}', 'show')->name('show');
+});
+// Withdraw Request all route end
+// Withdraw Request all route start
+
+Route::controller(WithdrawCompleteController::class)->prefix('admin/withdraw/complete')->name('admin.withdraw.complete.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::delete('/{id}', 'destroy')->name('destroy');
+    Route::get('status/{id}', 'status')->name('status');
+    Route::get('/{id}', 'show')->name('show');
+});
+// Withdraw Request all route end
+// Withdraw Request all route start
+
+Route::controller(WithdrawRejectController::class)->prefix('admin/withdraw/reject')->name('admin.withdraw.reject.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::delete('/{id}', 'destroy')->name('destroy');
+    Route::get('status/{id}', 'status')->name('status');
+    Route::get('/{id}', 'show')->name('show');
+    Route::post('/{id}', 'store')->name('store');
+});
+// Withdraw Request all route end
 
 //System  settings all route
 
