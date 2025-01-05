@@ -6,10 +6,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Vimeo\Laravel\Facades\Vimeo;
-use Spatie\Image\Image;
+
 
 class Helper {
     //! File or Image Upload
@@ -136,7 +135,7 @@ class Helper {
             return self::fileUpload($pdf->output(), 'certificates', $certificateFileName);
         } catch (Exception $e) {
             Log::error('Certificate Generation Error: ' . $e->getMessage());
-            throw $e;  // Re-throw the exception to handle it in the controller
+            throw $e;
         }
     }
 }
