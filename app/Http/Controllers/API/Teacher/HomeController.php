@@ -297,7 +297,7 @@ class HomeController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Monthly sales data retrieved successfully.',
-                'data' => compact('totalCourses', 'totalReviews', 'totalPrice', 'totalEarning', 'totalStudentCount', 'courseGraphData')
+                'data' => compact('totalCourses', 'totalReviews', 'totalResourceValue', 'totalEarning', 'totalStudentEnroll', 'courseGraphData')
             ], 200);
 
         } catch (Exception $e) {
