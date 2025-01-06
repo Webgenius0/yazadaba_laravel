@@ -16,27 +16,24 @@ class CurriculumController extends Controller
     public function details(Request $request, $curriculum): \Illuminate\Http\JsonResponse
     {
         try {
+            // Fetch the course with related course modules, category, grade level, and creator (user)
+            $course = Course::with(['courseModules', 'category', 'gradeLevel', 'user', 'reviews.user'])->where('status', 'active')->find($curriculum);
 
-            $user = Auth::user();
-
-            if (!$user) {
-                return Helper::jsonErrorResponse('User not authenticated.', 401);
-            }
-            if ($user->role !== 'student') {
-                return Helper::jsonResponse(false, 'Access denied. User is not a student.', 403, []);
-            }
-
-            $course = Course::with(['courseModules', 'category', 'gradeLevel'])->where('status','inactive')->find
-            ($curriculum);
             if (!$course) {
                 return Helper::jsonErrorResponse('Course not found.', 404);
             }
+
+            // Get the user who created the
+            $creator = $course->user;
+
+            if (!$creator) {
+                return Helper::jsonErrorResponse('Creator not found.', 404);
+            }
+
             // Format each module's video duration dynamically
             $course->courseModules->each(function ($module) {
-                // Convert video duration to seconds
                 $totalSeconds = array_sum(array_map(static fn($time) => (int)$time, explode(':', $module->module_video_duration)));
 
-                // Format the duration
                 if ($totalSeconds < 60) {
                     $module->module_video_duration = "{$totalSeconds} sec";
                 } elseif ($totalSeconds < 3600) {
@@ -46,6 +43,7 @@ class CurriculumController extends Controller
                 }
             });
 
+            // Calculate the total course duration
             $totalDurationInSeconds = DB::table('course_modules')
                 ->where('course_id', $course->id)
                 ->sum(DB::raw('TIME_TO_SEC(module_video_duration)'));
@@ -58,11 +56,11 @@ class CurriculumController extends Controller
                 $formattedDuration = floor($totalDurationInSeconds / 3600) . " hours";
             }
             $course->course_duration = $formattedDuration;
+
             // Add total ratings and average rating
             $course->total_ratings = $course->reviews()->count();
             $course->average_rating = (float)round($course->reviews()->avg('rating') ?? 0.0, 1);
             $course->ratings = $course->reviews()->select('user_id', 'review', 'rating', 'created_at')->get();
-
             $course->total_user_review = $course->reviews()->count();
 
             $course->makeHidden(['created_at', 'updated_at', 'deleted_at', 'status']);
@@ -72,11 +70,12 @@ class CurriculumController extends Controller
             $gradeLevelName = $course->gradeLevel->name ?? null;
 
             $courseData = [
+                // Show the creator's details
                 'user_details' => [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'avatar' => $user->avatar,
-                    'role' => $user->role,
+                    'name' => $creator->name,
+                    'email' => $creator->email,
+                    'avatar' => $creator->avatar ?? 'null',
+                    'role' => $creator->role,
                 ],
                 'course' => [
                     'id' => $course->id,
@@ -91,9 +90,14 @@ class CurriculumController extends Controller
                     'total_course_duration' => $course->course_duration,
                     'course_modules' => $course->courseModules,
                     'ratings' => $course->ratings->map(function ($rating) {
+                        // Fetch user details (name and avatar) for each rating
+                        $user = $rating->user;
+
                         $timeSinceCreated = $rating->created_at->diffForHumans();
                         return [
                             'user_id' => $rating->user_id,
+                            'name' => $user->name,
+                            'avatar' => $user->avatar ?? 'null',
                             'review' => $rating->review,
                             'rating' => $rating->rating,
                             'created_at' => $timeSinceCreated,
@@ -101,10 +105,14 @@ class CurriculumController extends Controller
                     }),
                 ],
             ];
+
             return Helper::jsonResponse(true, 'Course Curriculum retrieved successfully.', 200, $courseData);
-        }catch (Exception $e) {
+
+        } catch (Exception $e) {
             Log::error($e->getMessage());
             return Helper::jsonErrorResponse('An error occurred: ' . $e->getMessage(), 500);
         }
     }
+
+
 }
