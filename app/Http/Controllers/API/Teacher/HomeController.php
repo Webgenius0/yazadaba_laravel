@@ -46,7 +46,7 @@ class HomeController extends Controller
                 // Count the number of reviews for the current course
                 $reviewsCount = DB::table('reviews')
                     ->where('course_id', $course->id)
-                    ->count(); // Counts reviews for the course based on course_id
+                    ->count();
 
                 // Calculate the total duration of the course in seconds
                 $totalDurationInSeconds = DB::table('course_modules')
@@ -73,7 +73,6 @@ class HomeController extends Controller
                 // Fetch course category name and grade level name
                 $course->category_id = DB::table('categories')->where('id', $course->category_id)->value('name');
                 $course->grade_level_id = DB::table('grade_levels')->where('id', $course->grade_level_id)->value('name');
-
                 return $course;
             });
 
@@ -237,19 +236,19 @@ class HomeController extends Controller
 
             if ($month) {
                 // Weekly sales data for a specific month and year
-                $startOfMonth = Carbon::create($year, $month, 1); // Force the start of the month to the 1st
-                $endOfMonth = $startOfMonth->copy()->endOfMonth(); // Get the end of the month
-                $weeksInMonth = $startOfMonth->diffInWeeks($endOfMonth); // Get the number of weeks in the month
+                $startOfMonth = Carbon::create($year, $month, 1);
+                $endOfMonth = $startOfMonth->copy()->endOfMonth();
+                $weeksInMonth = $startOfMonth->diffInWeeks($endOfMonth);
 
                 $salesReview = [];
-                $weekStart = $startOfMonth->copy(); // Set the start of the first week to the 1st of the month
+                $weekStart = $startOfMonth->copy();
 
                 for ($week = 1; $week <= $weeksInMonth; $week++) {
 
                     $weekEnd = $weekStart->copy()->addDays(6);
 
                     if ($weekEnd->greaterThan($endOfMonth)) {
-                        $weekEnd = $endOfMonth; // Cap the week end to the end of the month
+                        $weekEnd = $endOfMonth;
                     }
 
                     // Sum the total earnings for the week

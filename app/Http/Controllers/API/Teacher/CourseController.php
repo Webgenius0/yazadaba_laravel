@@ -175,4 +175,20 @@ class CourseController extends Controller
 
     }
 
+    public function TogglePublished($id): \Illuminate\Http\JsonResponse
+    {
+        $userId = Auth::user();
+        $data = Course::find($id);
+        if (!$data) {
+            return Helper::jsonErrorResponse('Course not found.', 404);
+        }
+
+        // Toggle the status between 'active' and 'inactive'
+        $data->status = ($data->status === 'active') ? 'inactive' : 'active';
+
+        $data->save();
+        return Helper::jsonResponse(true, 'Course status toggled successfully', 200, $data);
+    }
+
+
 }

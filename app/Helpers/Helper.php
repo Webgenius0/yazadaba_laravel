@@ -126,17 +126,13 @@ class Helper {
     public function generateCertificateWithDynamicName($user, $course): string
     {
         try {
-            // Generate the certificate PDF using dompdf
             $pdf = PDF::loadView('certificates.template', compact('user', 'course'));
-
-            // Generate a unique name for the certificate PDF
             $certificateFileName = uniqid('certificate_', true) . '.pdf';
-
-            // Pass the raw PDF content to the fileUpload function to save the file in the 'public/uploads/certificates' directory
             return self::fileUpload($pdf->output(), 'certificates', $certificateFileName);
         } catch (Exception $e) {
             Log::error('Certificate Generation Error: ' . $e->getMessage());
             throw $e;  // Re-throw the exception to handle it in the controller
         }
     }
+
 }

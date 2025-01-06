@@ -88,7 +88,7 @@ class TeacherMentorController extends Controller
                         'grade_level_name' => $course->grade_level_name,
                         'total_ratings' => $course->total_ratings,
                         'average_rating' => $course->average_rating,
-                        'course_price' => $course->course_price,
+                        'course_price' => $course->price,
                         'total_course_duration' => $course->course_duration,
                         'ratings' => $course->ratings->map(function ($rating) {
                             $user = $rating->user;
