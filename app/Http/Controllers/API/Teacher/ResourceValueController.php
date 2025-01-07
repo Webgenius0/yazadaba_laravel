@@ -8,116 +8,223 @@ use App\Models\Course;
 use App\Models\CourseEnroll;
 use App\Models\Review;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use TusPhp\Response;
 
 class ResourceValueController extends Controller
 {
+    public function index(){
+        try {
+            $user = Auth::user();
+
+            // Ensure user is authenticated and is a teacher
+            if (!$user || $user->role !== 'teacher') {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+
+            // Get total statistics for the authenticated teacher's courses
+            $courses = Course::where('user_id', $user->id)->pluck('id');
+            $totalResourceValue = Course::where('user_id', $user->id)->sum('price');
+            $averageResourceValue = Course::where('user_id', $user->id)->count()
+                ? number_format(Course::where('user_id', $user->id)->sum('price') / Course::where('user_id', $user->id)->count(), 2)
+                : 0.00;
+            $totalResourceSold = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')->count();
+            $totalResourceSoldValue = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')->sum('amount');
+            $totalStudentEnroll = CourseEnroll::whereIn('course_id', $courses)->count();
+            $averageEnrollPerResources = count($courses) > 0
+                ? CourseEnroll::whereIn('course_id', $courses)->count() / count($courses)
+                : 0;
+            $newEnrollResources = CourseEnroll::whereIn('course_id', $courses)
+                ->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+                ->count();
+            $topEnrollCourse = CourseEnroll::select('course_id', DB::raw('count(*) as enrollments'))
+                ->groupBy('course_id')
+                ->orderByDesc('enrollments')
+                ->first();
+
+            $topEnrollAmount = $topEnrollCourse
+                ? $topEnrollCourse->enrollments * Course::find($topEnrollCourse->course_id)->price
+                : 0;
+            $data=[
+                'totalResourceValue' => $totalResourceValue,
+                'averageResourceValue' => $averageResourceValue,
+                'totalResourceSold' => $totalResourceSold,
+                'totalResourceSoldValue' => $totalResourceSoldValue,
+                'totalStudentEnroll' => $totalStudentEnroll,
+                'averageEnrollPerResources' => $averageEnrollPerResources,
+                'newEnrollResources' => $newEnrollResources,
+                'topEnrollAmount' => $topEnrollAmount,
+                'topEnrollAmountValue' => $topEnrollAmount,
+
+            ];
+            return Helper::jsonResponse(true ,'Resource Value Fetch successfully',200,$data);
+        }catch (Exception $e){
+            Log::error($e->getMessage());
+            return Helper::jsonResponse(false,' Error',500);
+        }
+    }
     public function RevenueBreakdown(Request $request): \Illuminate\Http\JsonResponse
     {
         $user = Auth::user();
 
-        // Check if the user is authenticated
-        if (!$user) {
-            return Helper::jsonErrorResponse('User not authenticated.', 401);
+        // Ensure the user is authenticated and is a teacher
+        if (!$user || $user->role !== 'teacher') {
+            return Helper::jsonErrorResponse('Access denied. User not authenticated or not a teacher.', 403);
         }
 
-        // Check if the user is a teacher
-        if ($user->role !== 'teacher') {
-            return Helper::jsonErrorResponse('Access denied. User is not a teacher.', 403);
-        }
-
-        // Get the user's courses
+        // Get courses of the user
         $courses = Course::where('user_id', auth()->id())->pluck('id');
 
-        // Determine if a specific year or month is selected from the request
-        $selectedYear = $request->input('year');  // If the user selects a year
-        $selectedMonth = $request->input('month');  // If the user selects a specific month
+        // Get selected year and month from the request
+        $selectedYear = $request->input('year', Carbon::now()->year);
+        $selectedMonth = $request->input('month', null);
 
-        // Base query to get sales data
+        // Validate future year or month
+        if ($selectedYear > Carbon::now()->year || ($selectedYear == Carbon::now()->year && $selectedMonth > Carbon::now()->month)) {
+            return Helper::jsonErrorResponse('Selected year or month is in the future.', 400);
+        }
+
+        // Build base query for sales data
         $salesQuery = CourseEnroll::whereIn('course_id', $courses)
             ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, WEEK(created_at) as week, SUM(amount) as amount')
             ->groupBy('year', 'month', 'week');
 
-        // Filter data by selected year if provided
-        if ($selectedYear) {
-            $salesQuery->whereYear('created_at', $selectedYear);
-        }
+        // Apply year and month filters
+        $salesQuery->whereYear('created_at', $selectedYear);
+        if ($selectedMonth) $salesQuery->whereMonth('created_at', $selectedMonth);
 
-        // Filter data by selected month if provided
-        if ($selectedMonth) {
-            $salesQuery->whereMonth('created_at', $selectedMonth);
-        }
-
-        // Get the sales data based on the filters
+        // Get the sales data
         $salesData = $salesQuery->get();
 
-        // Initialize the months array
-        $months = [
-            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-        ];
+        // Prepare the result
+        $result = [];
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        // Get the current year dynamically using Carbon
-        $currentYear = Carbon::now()->year;
+        // If month is selected, get weekly data; otherwise, yearly data
+        if ($selectedMonth !== null) {
+            // Get weekly breakdown
+            $startDate = Carbon::createFromDate($selectedYear, $selectedMonth, 1);
+            $endDate = $startDate->copy()->endOfMonth();
 
-        // Prepare arrays for original and adjusted sales data
-        $originalResult = [];
-        $adjustedResult = [];
-        $previousMonthAmount = 0;
+            for ($weekNumber = 1; $startDate->lte($endDate); $weekNumber++) {
+                $weekStart = $startDate->copy()->startOfWeek();
+                $weekEnd = $startDate->copy()->endOfWeek();
+                $weekData = $salesData->firstWhere(fn($sale) => Carbon::parse($sale->created_at)->between($weekStart, $weekEnd));
 
-        // Loop through all months and ensure every month is included in both arrays
-        foreach ($months as $index => $monthName) {
-            // Check for sales data for the current month
-            $monthData = $salesData->firstWhere('month', $index + 1);
+                $amount = $weekData ? $weekData->amount : 0;
+                $result['totalSales'][] = ['year' => $selectedYear, 'week' => $weekNumber, 'amount' => $amount];
+                $adjustedAmount = round($amount * 1.25 * 0.75, 2);
+                $result['revenue'][] = ['year' => $selectedYear, 'week' => $weekNumber, 'amount' => $adjustedAmount];
 
-            // Get the amount for the current month (or 0 if no sales)
-            $currentMonthAmount = $monthData ? $monthData->amount : 0;
-            $currentWeek = $monthData ? $monthData->week : null;
-
-            // Original result array (without changes)
-            $originalResult[] = [
-                'year' => $currentYear,
-                'month' => $monthName,
-                'week' => $currentWeek,  // Include week here
-                'amount' => $currentMonthAmount,
-            ];
-
-            // Adjusted result array (apply the 25% reduction on adjusted revenue)
-            $adjustedAmount = $currentMonthAmount;
-
-            // If previous month's amount exists, apply the 25% increase check
-            if ($previousMonthAmount > 0 && $currentMonthAmount >= $previousMonthAmount * 1.25) {
-                $adjustedAmount = $previousMonthAmount * 1.25;
+                $startDate->addWeek();
             }
-
-            // Increase adjusted amount by an additional 25%
-            $adjustedAmount *= 1.25;
-
-            // Apply a 25% reduction to the adjusted amount
-            $adjustedAmount *= 0.75;
-
-            // Add the reduced adjusted amount to the adjusted result
-            $adjustedResult[] = [
-                'year' => $currentYear,
-                'month' => $monthName,
-                'week' => $currentWeek,
-                'amount' => round($adjustedAmount, 2),
-            ];
-
-            $previousMonthAmount = $adjustedAmount / 0.75;
+        } else {
+            // Get monthly breakdown
+            foreach ($months as $index => $monthName) {
+                $monthData = $salesData->firstWhere('month', $index + 1);
+                $amount = $monthData ? $monthData->amount : 0;
+                $result['totalSales'][] = ['year' => $selectedYear, 'month' => $monthName, 'amount' => $amount];
+                $adjustedAmount = round($amount * 1.25 * 0.75, 2);
+                $result['revenue'][] = ['year' => $selectedYear, 'month' => $monthName, 'amount' => $adjustedAmount];
+            }
         }
 
-        // Return both the original and adjusted data as separate collections
-        // If no specific month is selected, return aggregated year data
         return response()->json([
             'status' => true,
-            'message' => 'Resources Performance Metrics retrieved successfully',
+            'message' => $selectedMonth !== null ? 'Monthly Revenue Breakdown retrieved successfully' : 'Yearly Revenue Breakdown retrieved successfully',
             'code' => 200,
-            'data' => [
-                'totalSales' => $originalResult,
-                'revenue' => $adjustedResult,
-            ]
+            'data' => $result
+        ], 200);
+    }
+    public function EnrollmentCompletionBreakdown(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $user = Auth::user();
+
+        // Ensure the user is authenticated and is a teacher
+        if (!$user || $user->role !== 'teacher') {
+            return Helper::jsonErrorResponse('Access denied. User not authenticated or not a teacher.', 403);
+        }
+
+        // Get courses of the user
+        $courses = Course::where('user_id', auth()->id())->pluck('id');
+
+        // Get selected year and month from the request
+        $selectedYear = $request->input('year', Carbon::now()->year);
+        $selectedMonth = $request->input('month', null);
+
+        // Validate future year or month
+        if ($selectedYear > Carbon::now()->year || ($selectedYear == Carbon::now()->year && $selectedMonth > Carbon::now()->month)) {
+            return Helper::jsonErrorResponse('Selected year or month is in the future.', 400);
+        }
+
+        // Prepare the result for both completions and enrollments
+        $result = [];
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        // If month is selected, get weekly data; otherwise, yearly data
+        if ($selectedMonth !== null) {
+            // Get weekly breakdown for completions
+            $startDate = Carbon::createFromDate($selectedYear, $selectedMonth, 1);
+            $endDate = $startDate->copy()->endOfMonth();
+
+            for ($weekNumber = 1; $startDate->lte($endDate); $weekNumber++) {
+                $weekStart = $startDate->copy()->startOfWeek();
+                $weekEnd = $startDate->copy()->endOfWeek();
+
+                // Get completions for this week from i_s_completes table
+                $completedCount = DB::table('i_s_completes')
+                    ->whereIn('course_id', $courses)
+                    ->whereBetween('created_at', [$weekStart, $weekEnd])
+                    ->where('status', 'complete')
+                    ->count();
+
+                // Get total amount of enrollments for this week from course_enrolls table
+                $enrolledAmount = DB::table('course_enrolls')
+                    ->whereIn('course_id', $courses)
+                    ->whereBetween('created_at', [$weekStart, $weekEnd])
+                    ->sum('amount');
+
+                // Store data for total completions and enrollments (with amount) for the week
+                $result['totalCompletions'][] = ['year' => $selectedYear, 'week' => $weekNumber, 'count' => $completedCount];
+                $result['totalEnrollments'][] = ['year' => $selectedYear, 'week' => $weekNumber, 'amount' => $enrolledAmount];
+
+                // Move to the next week
+                $startDate->addWeek();
+            }
+        } else {
+            // Get monthly breakdown for completions
+            foreach ($months as $index => $monthName) {
+                $monthStart = Carbon::createFromDate($selectedYear, $index + 1, 1);
+                $monthEnd = $monthStart->copy()->endOfMonth();
+
+                // Get completions for this month from i_s_completes table
+                $completedCount = DB::table('i_s_completes')
+                    ->whereIn('course_id', $courses)
+                    ->whereBetween('created_at', [$monthStart, $monthEnd])
+                    ->where('status', 'complete')
+                    ->count();
+
+                // Get total amount of enrollments for this month from course_enrolls table
+                $enrolledAmount = DB::table('course_enrolls')
+                    ->whereIn('course_id', $courses)
+                    ->whereBetween('created_at', [$monthStart, $monthEnd])
+                    ->sum('amount');
+
+                // Store data for total completions and enrollments (with amount) for the month
+                $result['totalCompletions'][] = ['year' => $selectedYear, 'month' => $monthName, 'amount' => $completedCount];
+                $result['totalEnrollments'][] = ['year' => $selectedYear, 'month' => $monthName, 'amount' => $enrolledAmount];
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => $selectedMonth !== null ? 'Monthly Enrollment and Completion Breakdown retrieved successfully' : 'Yearly Enrollment and Completion Breakdown retrieved successfully',
+            'code' => 200,
+            'data' => $result
         ], 200);
     }
 

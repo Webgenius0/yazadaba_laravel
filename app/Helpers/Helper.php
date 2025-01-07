@@ -6,10 +6,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Vimeo\Laravel\Facades\Vimeo;
-use Spatie\Image\Image;
+
 
 class Helper {
     //! File or Image Upload
@@ -126,17 +125,13 @@ class Helper {
     public function generateCertificateWithDynamicName($user, $course): string
     {
         try {
-            // Generate the certificate PDF using dompdf
             $pdf = PDF::loadView('certificates.template', compact('user', 'course'));
-
-            // Generate a unique name for the certificate PDF
             $certificateFileName = uniqid('certificate_', true) . '.pdf';
-
-            // Pass the raw PDF content to the fileUpload function to save the file in the 'public/uploads/certificates' directory
             return self::fileUpload($pdf->output(), 'certificates', $certificateFileName);
         } catch (Exception $e) {
             Log::error('Certificate Generation Error: ' . $e->getMessage());
-            throw $e;  // Re-throw the exception to handle it in the controller
+            throw $e;
         }
     }
+
 }

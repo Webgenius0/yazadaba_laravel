@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Certificate;
 use App\Models\CourseEnroll;
 use App\Models\ISComplete;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -44,10 +45,7 @@ class MyResourceController extends Controller
                     ->where('user_id', $user->id)
                     ->where('status', 'complete')
                     ->count();
-
                 $completionPercentage = $totalModules ? ($completedModules / $totalModules) * 100 : 0;
-
-                Log::info("Course ID: {$enrollment->course->id}, Total Modules: $totalModules, Completed Modules: $completedModules, Completion Percentage: $completionPercentage");
 
             // Calculate total duration in seconds
                 $totalDurationInSeconds = $enrollment->course->courseModules->sum(function ($module) {
@@ -62,14 +60,14 @@ class MyResourceController extends Controller
                 $ongoing = $completionPercentage > 0 && $completionPercentage < 100;
                 $completed = $completionPercentage === 100;
 
-                // Generate the certificate PDF after course completion
-                $certificateImage = (new Helper)->generateCertificateWithDynamicName($user, $enrollment->course);
-                // Store the certificate in the database
-                Certificate::create([
-                    'user_id' => $user->id,
-                    'course_id' => $enrollment->course->id,
-                    'certificate_image' => $certificateImage,
-                ]);
+//                // Controller action after course completion
+//                $certificateImage = Helper::generateCertificateWithDynamicName($user, $enrollment->course);
+//                Certificate::create([
+//                    'user_id' => $user->id,
+//                    'course_id' => $enrollment->course->id,
+//                    'certificate_image' => $certificateImage,
+//                ]);
+
                 // Get lesson details
                 $lessons = $enrollment->course->courseModules->map(function ($module) {
                     return [
@@ -89,7 +87,7 @@ class MyResourceController extends Controller
                         'cover_image' => $enrollment->course->cover_image,
                         'course_duration' => $formattedDuration,
                         'completion_percentage' => round($completionPercentage, 1),
-                        'certificate_image'=> url($certificateImage),
+//                        'certificate_image'=> url($certificateImage),
                         'lessons' => $lessons,
                     ];
                 }
@@ -102,7 +100,7 @@ class MyResourceController extends Controller
                         'cover_image' => $enrollment->course->cover_image,
                         'course_duration' => $formattedDuration,
                         'completion_percentage' => round($completionPercentage, 1),
-                        'certificate_image'=> url($certificateImage),
+//                        'certificate_image'=> url($certificateImage),
                         'lessons' => $lessons,
                     ];
                 }
@@ -118,4 +116,5 @@ class MyResourceController extends Controller
             return Helper::jsonErrorResponse('An error occurred: ' . $e->getMessage(), 500);
         }
     }
+
 }

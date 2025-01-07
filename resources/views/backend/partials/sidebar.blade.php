@@ -66,6 +66,30 @@
         </li>
         <!-- Course end -->
 
+        <!-- Withdraw Request Start -->
+        <li class="menu-item {{
+                Request::routeIs('admin.withdraw.request*') ||
+                Request::routeIs('admin.withdraw.complete*') ||
+                Request::routeIs('admin.withdraw.reject*') ? 'active open' : ''
+                              }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-cog"></i>
+                <div data-i18n="Layouts">Withdraw</div>
+            </a>
+
+            <ul class="menu-sub">
+                <li class="menu-item {{ Request::routeIs('admin.withdraw.request.index') ? 'active' : '' }}">
+                    <a class="menu-link" href="{{ route('admin.withdraw.request.index') }}">Requests</a>
+                </li>
+                <li class="menu-item {{ Request::routeIs('admin.withdraw.complete.index') ? 'active' : '' }}">
+                    <a class="menu-link" href="{{ route('admin.withdraw.complete.index') }}">Request Complete</a>
+                </li>
+                <li class="menu-item {{ Request::routeIs('admin.withdraw.reject.index') ? 'active' : '' }}">
+                    <a class="menu-link" href="{{ route('admin.withdraw.reject.index') }}">Reject Lists</a>
+                </li>
+            </ul>
+        </li>
+        <!-- Withdraw Request End  -->
 
         <!-- Settings -->
         <li class="menu-header small text-uppercase"><span class="menu-header-text">Settings</span></li>
@@ -79,10 +103,12 @@
 
             <ul class="menu-sub">
                 <li class="menu-item {{ Request::routeIs('system.setting') ? 'active' : '' }}"><a class="menu-link"
-                        href="{{ route('system.setting') }}">System Settings</a></li>
+                                                                                                  href="{{ route('system.setting') }}">System
+                        Settings</a></li>
 
                 <li class="menu-item {{ Request::routeIs('system.mail.index') ? 'active' : '' }}"><a class="menu-link"
-                        href="{{ route('system.mail.index') }}">Mail Setting</a></li>
+                                                                                                     href="{{ route('system.mail.index') }}">Mail
+                        Setting</a></li>
 
             </ul>
         </li>

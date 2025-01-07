@@ -39,7 +39,7 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::get('/teacher/profile', [UserController::class, 'TeacherProfile']);
     Route::post('/teacher/upload-avatar', [UserController::class, 'TeacherUploadAvatar']);
     Route::post('/teacher/update-profile', [UserController::class, 'TeacherUpdateProfile']);
-    Route::delete('/teacher/delete-profile/{id}', [UserController::class, 'TeacherDeleteProfile']);
+    Route::delete('/teacher/delete-profile', [UserController::class, 'TeacherDeleteProfile']);
 
 
     //course related route
@@ -50,6 +50,7 @@ Route::group(['middleware' => 'auth:api'], static function () {
         Route::post('/delete/{id}', 'delete');
         Route::get('/get/categories', 'getCategories');
         Route::get('/get/grade-level', 'getGradeLevel');
+        Route::post('/{id}/toggle-status', 'TogglePublished');
     });
 
     Route::controller(CourseModuleController::class)->prefix('course-module')->group(function () {
@@ -87,7 +88,11 @@ Route::group(['middleware' => 'auth:api'], static function () {
 
 
     Route::controller(ResourceValueController::class)->prefix('home')->group(function () {
+        Route::get('/resource/value', 'index');
         Route::get('/resource/performance/metrics', 'RevenueBreakdown');
+        Route::get('/enroll/complete/breakdown', 'EnrollmentCompletionBreakdown');
+        Route::get('/revenue/trade/growth', 'RevenueTrendsGrowthIndicator');
+
     });
 
 
@@ -100,6 +105,8 @@ Route::group(['middleware' => 'auth:api'], static function () {
     //Student home all route
     Route::controller(\App\Http\Controllers\API\Student\HomeController::class)->prefix('home/student')->group(function () {
         Route::get('/', 'index');
+        Route::get('/filter-category', 'filterCategory');
+        Route::get('/search-course', 'searchByCourse');
     });
     Route::controller(\App\Http\Controllers\API\Student\CurriculumController::class)->prefix('student/course-curriculum')->group(function () {
         Route::get('/details/{curriculum}', 'details');
@@ -117,14 +124,14 @@ Route::group(['middleware' => 'auth:api'], static function () {
     });
 
     //Student Profile management
-
     Route::get('/student/profile', [UserController::class, 'StudentProfile']);
     Route::post('/student/upload-avatar', [UserController::class, 'StudentUploadAvatar']);
     Route::post('/student/update-profile', [UserController::class, 'StudentUpdateProfile']);
-    Route::delete('/student/delete-profile/{id}', [UserController::class, 'StudentDeleteProfile']);
+    Route::delete('/student/delete-profile', [UserController::class, 'StudentDeleteProfile']);
 
     Route::post('/enroll', [\App\Http\Controllers\API\Student\EnrollController::class, 'enroll']);
     Route::post('/is-complete', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'isComplete']);
+//    Route::post('/review', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'review']);
 
 });
 
