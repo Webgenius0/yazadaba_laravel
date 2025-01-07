@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('video_url');
             $table->text('document_url')->nullable();
             $table->time('module_video_duration')->default('00:00:00');
+            $table->boolean('is_complete')->default(false);
             $table->timestamps();
         });
     }
