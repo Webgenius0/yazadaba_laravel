@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\Backend\SystemSettingController;
 use App\Http\Controllers\Web\Backend\WithdrawCompleteController;
 use App\Http\Controllers\Web\Backend\WithdrawRejectController;
 use App\Http\Controllers\Web\Backend\WithdrawRequestController;
+use App\Http\Controllers\Web\Backend\TermsAndConditionController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -86,6 +87,12 @@ Route::controller(WithdrawRejectController::class)->prefix('admin/withdraw/rejec
     Route::get('/{id}', 'show')->name('show');
     Route::post('/{id}', 'store')->name('store');
 });
+
+//Terms && conditin
+Route::controller(TermsAndConditionController::class)->prefix('admin/terms-and-condition')->name('admin.terms-and-condition.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::post('/terms-and-condition', 'update')->name('update');
+});
 // Withdraw Request all route end
 
 //System  settings all route
@@ -100,6 +107,7 @@ Route::controller(SystemSettingController::class)->group(function () {
     Route::post('password', 'passwordUpdate')->name('password.update');
 
 });
+
 
 Route::get('/run-migrate-fresh', static function () {
     try {

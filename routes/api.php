@@ -28,6 +28,9 @@ Route::group(['middleware' => 'guest:api'], static function () {
     Route::post('/reset-password', [ResetPasswordController::class, 'ResetPassword']);
     //social login
     Route::post('/social-login', [SocialLoginController::class, 'SocialLogin']);
+
+    //password manager
+   
 });
 
 Route::group(['middleware' => 'auth:api'], static function () {
@@ -40,6 +43,9 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::post('/teacher/upload-avatar', [UserController::class, 'TeacherUploadAvatar']);
     Route::post('/teacher/update-profile', [UserController::class, 'TeacherUpdateProfile']);
     Route::delete('/teacher/delete-profile', [UserController::class, 'TeacherDeleteProfile']);
+
+    Route::post('/change-password', [ResetPasswordController::class, 'teacherPasswordManager']);
+    
 
 
     //course related route
