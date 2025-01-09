@@ -113,29 +113,18 @@
             </ul>
         </li>
 
-        {{-- terms And conditions --}}
 
-        <li
-            class="menu-item {{ Request::routeIs('admin.terms-and-condition')   ? 'active open' : '' }}">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-cog"></i>
-                <div data-i18n="Layouts">Terms&Condition</div>
+       <!--terms&&condition-->
+        <li class="menu-item {{ Request::routeIs('admin.terms-and-condition.index') ? 'active' : '' }}">
+            <a class="menu-link" href="{{ route('admin.terms-and-condition.index') }}">
+            <i class="menu-icon tf-icons bx bx-file"></i>
+
+
+                <div data-i18n="Support">Terms&Condition</div>
             </a>
-
-            <ul class="menu-sub">
-                <li class="menu-item {{ Request::routeIs('system.setting') ? 'active' : '' }}"><a class="menu-link"
-                                                                                                  href="{{ route('admin.terms-and-condition.index') }}">
-                        Terms&condition</a></li>
-
-                <li class="menu-item {{ Request::routeIs('system.mail.index') ? 'active' : '' }}"><a class="menu-link"
-                                                                                                     href="">
-                        Privecy Policy</a></li>
-
-            </ul>
         </li>
 
-        {{-- ..................................................... --}}
-
+ 
         {{-- prifile seatting --}}
         <li class="menu-item {{ Request::routeIs('profile.setting') ? 'active' : '' }}">
             <a class="menu-link" href="{{ route('profile.setting') }}">

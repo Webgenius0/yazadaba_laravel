@@ -14,6 +14,7 @@ use App\Http\Controllers\API\Auth\LogoutController;
 use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\Auth\SocialLoginController;
 use App\Http\Controllers\API\Auth\ResetPasswordController;
+use App\Http\Controllers\API\admin\TermsAndConditionController;
 
 Route::group(['middleware' => 'guest:api'], static function () {
     //register
@@ -57,6 +58,7 @@ Route::group(['middleware' => 'auth:api'], static function () {
         Route::get('/get/categories', 'getCategories');
         Route::get('/get/grade-level', 'getGradeLevel');
         Route::post('/{id}/toggle-status', 'TogglePublished');
+        Route::get('/get/enrollcourse','myResource');
     });
 
     Route::controller(CourseModuleController::class)->prefix('course-module')->group(function () {
@@ -138,6 +140,8 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::post('/enroll', [\App\Http\Controllers\API\Student\EnrollController::class, 'enroll']);
     Route::post('/is-complete', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'isComplete']);
 //    Route::post('/review', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'review']);
+
+Route::post('/terms-condition', [TermsAndConditionController::class, 'updateOrCreate'])->name('termsandCondition');
 
 });
 

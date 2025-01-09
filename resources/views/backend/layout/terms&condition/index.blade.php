@@ -24,7 +24,7 @@
                                             placeholder="Md" name="fname" value="{{ Auth::user()->fname }}"> --}}
                                             <textarea class="form-control form-control-solid" name="terms" id="terms" value="">{{  $termsAndCondition->terms ?? 'terms'  }}</textarea>
 
-                                        @error('fname')
+                                        @error('terms')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
                                             </span>
@@ -42,7 +42,7 @@
                                             placeholder="Md" name="fname" value="{{ Auth::user()->fname }}"> --}}
                                             <textarea class="form-control form-control-solid" name="conditions" id="conditions" value="">{{  $termsAndCondition->conditions ?? 'conditions'  }}</textarea>
 
-                                        @error('fname')
+                                        @error('conditions')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
                                             </span>
