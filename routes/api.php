@@ -31,7 +31,7 @@ Route::group(['middleware' => 'guest:api'], static function () {
     Route::post('/social-login', [SocialLoginController::class, 'SocialLogin']);
 
     //password manager
-   
+
 });
 
 Route::group(['middleware' => 'auth:api'], static function () {
@@ -46,7 +46,7 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::delete('/teacher/delete-profile', [UserController::class, 'TeacherDeleteProfile']);
 
     Route::post('/change-password', [ResetPasswordController::class, 'teacherPasswordManager']);
-    
+
 
 
     //course related route
@@ -140,6 +140,9 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::post('/enroll', [\App\Http\Controllers\API\Student\EnrollController::class, 'enroll']);
     Route::post('/is-complete', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'isComplete']);
 //    Route::post('/review', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'review']);
+
+    //withdraw Request teacher in admin dashboard
+    Route::post('/withdraw-request', [\App\Http\Controllers\API\Teacher\WithdrawRequestController::class, 'withdrawRequest']);
 
 Route::post('/terms-condition', [TermsAndConditionController::class, 'updateOrCreate'])->name('termsandCondition');
 
