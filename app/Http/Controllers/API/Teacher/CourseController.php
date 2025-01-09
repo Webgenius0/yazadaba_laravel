@@ -10,6 +10,8 @@ use App\Models\GradeLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Exception;
+use App\Models\CourseEnroll;
 
 class CourseController extends Controller
 {
@@ -154,7 +156,6 @@ class CourseController extends Controller
         } catch (\Exception $e) {
             return Helper::jsonResponse(false, 'Something went wrong.', 500);
         }
-
     }
 
     public function getGradeLevel(): \Illuminate\Http\JsonResponse
@@ -172,7 +173,6 @@ class CourseController extends Controller
         } catch (\Exception $e) {
             return Helper::jsonResponse(false, 'Something went wrong.', 500);
         }
-
     }
 
     public function TogglePublished($id): \Illuminate\Http\JsonResponse
@@ -190,5 +190,40 @@ class CourseController extends Controller
         return Helper::jsonResponse(true, 'Course status toggled successfully', 200, $data);
     }
 
-
+    public function myResource(Request $request)
+    {
+        try {
+            $user = Auth::user();
+    
+            if (!$user || $user->role != 'teacher') {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+    
+            // Step 1: Fetch all courses for the specific teacher (user)
+            $courses = Course::where('user_id', $user->id)->get();
+    
+            // Step 2: Loop through each course and count the number of students enrolled
+            $responseData = $courses->map(function ($course) {
+                // Count the number of students enrolled in each course
+                $enrollsCount = CourseEnroll::where('course_id', $course->id)->count();
+    
+                return [
+                    
+                    'course_id' => $course->id,
+                    'course_name' => $course->name,
+                    'enrolled_students' => $enrollsCount,
+                    'price' => $course->price ?? '0.0',
+                    'cover_image' => $course->cover_image ?? '',
+                    'status' => $course->status
+                ];
+            });
+    
+            // Step 3: Return a combined response with all course data
+            return Helper::jsonResponse(true, 'Course Data fetched successfully', 200, $responseData);
+        } catch (Exception $e) {
+            // Log::error($e->getMessage());
+            return Helper::jsonErrorResponse($e->getMessage(), 500);
+        }
+    }
+    
 }
