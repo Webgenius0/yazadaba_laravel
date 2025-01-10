@@ -57,8 +57,8 @@ Route::group(['middleware' => 'auth:api'], static function () {
         Route::post('/delete/{id}', 'delete');
         Route::get('/get/categories', 'getCategories');
         Route::get('/get/grade-level', 'getGradeLevel');
-        Route::post('/{id}/toggle-status', 'TogglePublished');
-        Route::get('/get/enrollcourse','myResource');
+        Route::post('/publish-request/{id}', 'publishRequest');
+        Route::get('/get/enrollcourse', 'myResource');
     });
 
     Route::controller(CourseModuleController::class)->prefix('course-module')->group(function () {
@@ -100,13 +100,11 @@ Route::group(['middleware' => 'auth:api'], static function () {
         Route::get('/resource/performance/metrics', 'RevenueBreakdown');
         Route::get('/enroll/complete/breakdown', 'EnrollmentCompletionBreakdown');
         Route::get('/revenue/trade/growth', 'RevenueTrendsGrowthIndicator');
-
     });
 
 
     //enroll student list
-    Route::controller(\App\Http\Controllers\API\Teacher\CertificateController::class)->prefix('student')->group
-    (function () {
+    Route::controller(\App\Http\Controllers\API\Teacher\CertificateController::class)->prefix('student')->group(function () {
         Route::get('/list/{course_id}', 'index');
         Route::post('/certificate', 'store');
     });
@@ -119,8 +117,7 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::controller(\App\Http\Controllers\API\Student\CurriculumController::class)->prefix('student/course-curriculum')->group(function () {
         Route::get('/details/{curriculum}', 'details');
     });
-    Route::controller(\App\Http\Controllers\API\Student\MyResourceController::class)->prefix('my-resources')->group
-    (function () {
+    Route::controller(\App\Http\Controllers\API\Student\MyResourceController::class)->prefix('my-resources')->group(function () {
         Route::get('/', 'index');
     });
     //Student  mentor all route
@@ -139,20 +136,10 @@ Route::group(['middleware' => 'auth:api'], static function () {
 
     Route::post('/enroll', [\App\Http\Controllers\API\Student\EnrollController::class, 'enroll']);
     Route::post('/is-complete', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'isComplete']);
-//    Route::post('/review', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'review']);
+    //Route::post('/review', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'review']);
 
     //withdraw Request teacher in admin dashboard
     Route::post('/withdraw-request', [\App\Http\Controllers\API\Teacher\WithdrawRequestController::class, 'withdrawRequest']);
 
-Route::post('/terms-condition', [TermsAndConditionController::class, 'updateOrCreate'])->name('termsandCondition');
-
+    Route::post('/terms-condition', [TermsAndConditionController::class, 'updateOrCreate'])->name('termsandCondition');
 });
-
-
-
-
-
-
-
-
-

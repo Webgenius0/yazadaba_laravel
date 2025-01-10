@@ -1,6 +1,5 @@
 <?php
 
-
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\Backend\CategoryController;
 use App\Http\Controllers\Web\Backend\CoursesController;
@@ -37,8 +36,7 @@ Route::controller(CategoryController::class)->prefix('admin/category')->name('ad
 
 // Grade Level all route start
 
-Route::controller(GradeLevelController::class)->prefix('admin/grade-level')->name('admin.grade-level.')->group
-(function () {
+Route::controller(GradeLevelController::class)->prefix('admin/grade-level')->name('admin.grade-level.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::get('/create', 'create')->name('create');
     Route::post('/store', 'store')->name('store');
@@ -46,7 +44,6 @@ Route::controller(GradeLevelController::class)->prefix('admin/grade-level')->nam
     Route::put('/{gradeLevel}', 'update')->name('update');
     Route::delete('/{course}', 'destroy')->name('destroy');
     Route::get('status/{course}', 'status')->name('status');
-
 });
 // Grade Level all route end
 
@@ -88,7 +85,12 @@ Route::controller(WithdrawRejectController::class)->prefix('admin/withdraw/rejec
     Route::post('/{id}', 'store')->name('store');
 });
 
-//Terms && conditin
+Route::controller(\App\Http\Controllers\Web\Backend\CoursePublicationController::class)->prefix('course/publication')->name('course.publication.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::delete('/{id}', 'destroy')->name('destroy');
+});
+
+//Terms && condition
 Route::controller(TermsAndConditionController::class)->prefix('admin/terms-and-condition')->name('admin.terms-and-condition.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::post('/terms-and-condition', 'update')->name('update');
@@ -105,7 +107,6 @@ Route::controller(SystemSettingController::class)->group(function () {
     Route::get('/system/profile', 'profileIndex')->name('profile.setting');
     Route::post('/profile', 'profileUpdate')->name('profile.update');
     Route::post('password', 'passwordUpdate')->name('password.update');
-
 });
 
 

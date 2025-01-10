@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers\API\Teacher;
 
-use App\Helpers\Helper;
-use App\Http\Controllers\Controller;
-use App\Models\Category;
-use App\Models\Course;
-use App\Models\GradeLevel;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Exception;
+use App\Models\Course;
+use App\Helpers\Helper;
+use App\Models\Category;
+use App\Models\GradeLevel;
+use Illuminate\Support\Str;
 use App\Models\CourseEnroll;
+use Illuminate\Http\Request;
+use App\Models\PublishRequest;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Mail\CoursePublishedRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class CourseController extends Controller
 {
@@ -63,15 +67,15 @@ class CourseController extends Controller
         }
 
         // Create the course with the authenticated user's ID
-        $course = Course::create([
-            'user_id' => $userId->id,
-            'name' => $request->name,
-            'category_id' => $request->category_id,
-            'grade_level_id' => $request->grade_level_id,
-            'description' => $request->description,
-            'price' => $request->price,
-            'cover_image' => $coverImage,
-        ]);
+        $course = new Course();
+        $course->user_id = $userId->id;
+        $course->name = $request->name;
+        $course->category_id = $request->category_id;
+        $course->grade_level_id = $request->grade_level_id;
+        $course->description = $request->description;
+        $course->price = $request->price;
+        $course->cover_image = $coverImage;
+        $course->save();
 
         // Return a successful response with the created course
         return Helper::jsonResponse(true, 'Course created successfully', 200, $course);
@@ -153,7 +157,7 @@ class CourseController extends Controller
             }
             $categories = Category::all();
             return Helper::jsonResponse(true, 'Categories fetch successfully', 200, $categories);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return Helper::jsonResponse(false, 'Something went wrong.', 500);
         }
     }
@@ -170,45 +174,75 @@ class CourseController extends Controller
             }
             $gradeLevel = GradeLevel::all();
             return Helper::jsonResponse(true, 'Grade Level fetch successfully', 200, $gradeLevel);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return Helper::jsonResponse(false, 'Something went wrong.', 500);
         }
     }
 
-    public function TogglePublished($id): \Illuminate\Http\JsonResponse
+    public function publishRequest($id): \Illuminate\Http\JsonResponse
     {
-        $userId = Auth::user();
-        $data = Course::find($id);
-        if (!$data) {
+        $user = Auth::user();
+        $course = Course::find($id);
+
+        if (!$course) {
             return Helper::jsonErrorResponse('Course not found.', 404);
         }
 
-        // Toggle the status between 'active' and 'inactive'
-        $data->status = ($data->status === 'active') ? 'inactive' : 'active';
+        // Find any existing request from the user for the same course
+        $existingRequest = PublishRequest::where('user_id', $user->id)
+            ->where('course_id', $id)
+            ->first();
 
-        $data->save();
-        return Helper::jsonResponse(true, 'Course status toggled successfully', 200, $data);
+        // Determine the action based on the current course status
+        $action = $course->status == 'active' ? 'unpublish' : 'publish';
+
+        // If there is already a pending request, return an error
+        if ($existingRequest) {
+            return Helper::jsonErrorResponse(ucfirst($action) . ' request is already pending.', 400);
+        }
+
+        // Create the new publish/unpublish request with appropriate status
+        $publishRequest = PublishRequest::create([
+            'user_id' => $user->id,
+            'course_id' => $course->id,
+            'status' => $action,
+        ]);
+
+        // Success message based on the action
+        $successMessage = $action == 'active'
+            ? 'Unpublish request submitted successfully. Awaiting admin approval.'
+            : 'Publish request submitted successfully. Awaiting admin approval.';
+
+        try {
+            // Send email notification to the user about the request
+            Mail::to($user->email)->send(new CoursePublishedRequest($publishRequest));
+        } catch (Exception $e) {
+            return Helper::jsonErrorResponse('Failed to send email notification.', 500);
+        }
+
+        return Helper::jsonResponse(true, $successMessage, 200);
     }
+
 
     public function myResource(Request $request)
     {
         try {
             $user = Auth::user();
-    
+
             if (!$user || $user->role != 'teacher') {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
-    
+
             // Step 1: Fetch all courses for the specific teacher (user)
             $courses = Course::where('user_id', $user->id)->get();
-    
+
             // Step 2: Loop through each course and count the number of students enrolled
             $responseData = $courses->map(function ($course) {
                 // Count the number of students enrolled in each course
                 $enrollsCount = CourseEnroll::where('course_id', $course->id)->count();
-    
+
                 return [
-                    
+
                     'course_id' => $course->id,
                     'course_name' => $course->name,
                     'enrolled_students' => $enrollsCount,
@@ -217,7 +251,7 @@ class CourseController extends Controller
                     'status' => $course->status
                 ];
             });
-    
+
             // Step 3: Return a combined response with all course data
             return Helper::jsonResponse(true, 'Course Data fetched successfully', 200, $responseData);
         } catch (Exception $e) {
@@ -225,5 +259,4 @@ class CourseController extends Controller
             return Helper::jsonErrorResponse($e->getMessage(), 500);
         }
     }
-    
 }

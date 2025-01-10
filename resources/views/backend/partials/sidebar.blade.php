@@ -65,6 +65,16 @@
             </a>
         </li>
         <!-- Course end -->
+        <!-- Publication request start -->
+        <li
+            class="menu-item {{ Request::routeIs('course.publication.*') || Request::routeIs('course.publication') ? 'active' : ''
+            }}">
+            <a href="{{ route('course.publication.index') }}" class="menu-link">
+                <i class='menu-icon tf-icons bx bxs-badge-check'></i>
+                <div data-i18n="Layouts">Publication Request</div>
+            </a>
+        </li>
+        <!-- Publication request end -->
 
         <!-- Withdraw Request Start -->
         <li class="menu-item {{
@@ -124,7 +134,7 @@
             </a>
         </li>
 
- 
+
         {{-- prifile seatting --}}
         <li class="menu-item {{ Request::routeIs('profile.setting') ? 'active' : '' }}">
             <a class="menu-link" href="{{ route('profile.setting') }}">
