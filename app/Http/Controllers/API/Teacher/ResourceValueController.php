@@ -189,7 +189,7 @@ class ResourceValueController extends Controller
                     ->sum('amount');
 
                 // Store data for total completions and enrollments (with amount) for the week
-                $result['totalCompletions'][] = ['year' => $selectedYear, 'week' => $weekNumber, 'count' => $completedCount];
+                $result['totalCompletions'][] = ['year' => $selectedYear, 'week' => $weekNumber, 'amount' => $completedCount];
                 $result['totalEnrollments'][] = ['year' => $selectedYear, 'week' => $weekNumber, 'amount' => $enrolledAmount];
 
                 // Move to the next week

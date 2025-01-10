@@ -68,5 +68,6 @@
 <div class="layout-overlay layout-menu-toggle"></div>
 <!-- / Layout wrapper -->
 @include('backend.partials.script')
+@stack('scripts')
 </body>
 </html>

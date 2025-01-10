@@ -113,8 +113,18 @@
             </ul>
         </li>
 
-        {{-- ..................................................... --}}
 
+       <!--terms&&condition-->
+        <li class="menu-item {{ Request::routeIs('admin.terms-and-condition.index') ? 'active' : '' }}">
+            <a class="menu-link" href="{{ route('admin.terms-and-condition.index') }}">
+            <i class="menu-icon tf-icons bx bx-file"></i>
+
+
+                <div data-i18n="Support">Terms&Condition</div>
+            </a>
+        </li>
+
+ 
         {{-- prifile seatting --}}
         <li class="menu-item {{ Request::routeIs('profile.setting') ? 'active' : '' }}">
             <a class="menu-link" href="{{ route('profile.setting') }}">

@@ -14,6 +14,7 @@ use App\Http\Controllers\API\Auth\LogoutController;
 use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\Auth\SocialLoginController;
 use App\Http\Controllers\API\Auth\ResetPasswordController;
+use App\Http\Controllers\API\admin\TermsAndConditionController;
 
 Route::group(['middleware' => 'guest:api'], static function () {
     //register
@@ -28,6 +29,9 @@ Route::group(['middleware' => 'guest:api'], static function () {
     Route::post('/reset-password', [ResetPasswordController::class, 'ResetPassword']);
     //social login
     Route::post('/social-login', [SocialLoginController::class, 'SocialLogin']);
+
+    //password manager
+
 });
 
 Route::group(['middleware' => 'auth:api'], static function () {
@@ -41,6 +45,9 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::post('/teacher/update-profile', [UserController::class, 'TeacherUpdateProfile']);
     Route::delete('/teacher/delete-profile', [UserController::class, 'TeacherDeleteProfile']);
 
+    Route::post('/change-password', [ResetPasswordController::class, 'teacherPasswordManager']);
+
+
 
     //course related route
     Route::controller(CourseController::class)->prefix('course')->group(function () {
@@ -51,6 +58,7 @@ Route::group(['middleware' => 'auth:api'], static function () {
         Route::get('/get/categories', 'getCategories');
         Route::get('/get/grade-level', 'getGradeLevel');
         Route::post('/{id}/toggle-status', 'TogglePublished');
+        Route::get('/get/enrollcourse','myResource');
     });
 
     Route::controller(CourseModuleController::class)->prefix('course-module')->group(function () {
@@ -132,6 +140,11 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::post('/enroll', [\App\Http\Controllers\API\Student\EnrollController::class, 'enroll']);
     Route::post('/is-complete', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'isComplete']);
 //    Route::post('/review', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'review']);
+
+    //withdraw Request teacher in admin dashboard
+    Route::post('/withdraw-request', [\App\Http\Controllers\API\Teacher\WithdrawRequestController::class, 'withdrawRequest']);
+
+Route::post('/terms-condition', [TermsAndConditionController::class, 'updateOrCreate'])->name('termsandCondition');
 
 });
 

@@ -147,13 +147,14 @@ class UserController extends Controller
                 return Helper::jsonResponse(false, 'Access denied. User is not a Teacher.', 403, []);
             }
 
-            // Find the authenticated teacher and delete the profile
+            // Find the authenticated teacher and permanently delete the profile
             $teacherDelete = User::find($user->id);
             if ($teacherDelete) {
-                $teacherDelete->delete();
+                // Use forceDelete() to permanently remove the user
+                $teacherDelete->forceDelete();
             }
 
-            return Helper::jsonResponse(true, 'Teacher Profile deleted successfully!', 200, $user);
+            return Helper::jsonResponse(true, 'Teacher Profile deleted permanently!', 200, []);
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return Helper::jsonResponse(false, 'Teacher Profile delete failed!', 500);
@@ -282,17 +283,19 @@ class UserController extends Controller
                 return Helper::jsonResponse(false, 'Access denied. User is not a student.', 403, []);
             }
 
-            // Find the authenticated student and delete the profile
+            // Find the authenticated student and permanently delete the profile
             $studentDelete = User::find($user->id);
             if ($studentDelete) {
-                $studentDelete->delete();
+                // Use forceDelete() to permanently remove the user
+                $studentDelete->forceDelete();
             }
 
-            return Helper::jsonResponse(true, 'Student Profile deleted successfully!', 200, $user);
+            return Helper::jsonResponse(true, 'Student Profile deleted permanently!', 200, []);
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return Helper::jsonResponse(false, 'Student Profile delete failed!', 500);
         }
     }
 
+    
 }

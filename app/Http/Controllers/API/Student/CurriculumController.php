@@ -23,11 +23,29 @@ class CurriculumController extends Controller
                 return Helper::jsonErrorResponse('Course not found.', 404);
             }
 
-            // Get the user who created the
+            // Get the user who created the course
             $creator = $course->user;
 
             if (!$creator) {
                 return Helper::jsonErrorResponse('Creator not found.', 404);
+            }
+
+            // Update course module completion status based on i_s_completes table
+            foreach ($course->courseModules as $module) {
+                $completionStatus = DB::table('i_s_completes')
+                    ->where('course_module_id', $module->id)
+                    ->where('status', 'complete')
+                    ->first();
+
+                // If status is 'complete', update course module's is_complete to true
+                if ($completionStatus) {
+                    $module->is_complete = true;
+                } else {
+                    $module->is_complete = false;
+                }
+
+                // Save the updated module status
+                $module->save();
             }
 
             // Format each module's video duration dynamically
@@ -113,6 +131,7 @@ class CurriculumController extends Controller
             return Helper::jsonErrorResponse('An error occurred: ' . $e->getMessage(), 500);
         }
     }
+
 
 
 }
