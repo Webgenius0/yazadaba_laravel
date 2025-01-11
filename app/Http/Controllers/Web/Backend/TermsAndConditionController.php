@@ -39,6 +39,12 @@ class TermsAndConditionController extends Controller
     }
 
 
+
+    public function privacyPolicy()
+    {
+        $privecyPolicy = PrivacyPolicy::first();
+        return view('backend.layout.terms&condition.privacypolicy', compact('privecyPolicy'));
+    }
     public function updatePrivecyPolicy(Request $request): ?\Illuminate\Http\RedirectResponse
     {
         $request->validate([

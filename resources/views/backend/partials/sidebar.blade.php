@@ -124,7 +124,16 @@
             </a>
         </li>
 
- 
+        <!--privacyPolicy-->
+        <li class="menu-item ">
+            <a class="menu-link" href="{{ route('admin.terms-and-condition.privacyPolicy') }}">
+            <i class="menu-icon tf-icons bx bx-lock"></i>
+
+                <div data-i18n="Support">Privecypolicy</div>
+            </a>
+        </li>
+
+
         {{-- prifile seatting --}}
         <li class="menu-item {{ Request::routeIs('profile.setting') ? 'active' : '' }}">
             <a class="menu-link" href="{{ route('profile.setting') }}">
