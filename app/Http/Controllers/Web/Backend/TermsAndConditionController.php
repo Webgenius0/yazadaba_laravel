@@ -10,10 +10,10 @@ use Exception;
 
 class TermsAndConditionController extends Controller
 {
-    public function index()
+    public function termsandCondition()
     {
         $termsAndCondition = TermsAndCondition::first();
-        return view('backend.layout.terms&condition.index', compact('termsAndCondition'));
+        return view('backend.layout.terms&condition.termsandCondition', compact('termsAndCondition'));
     }
 
     public function update(Request $request): ?\Illuminate\Http\RedirectResponse

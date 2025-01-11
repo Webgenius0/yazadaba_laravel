@@ -141,7 +141,8 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::post('/is-complete', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'isComplete']);
 //    Route::post('/review', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'review']);
 
-Route::post('/terms-condition', [TermsAndConditionController::class, 'updateOrCreate'])->name('termsandCondition');
+Route::get('/terms-condition', [TermsAndConditionController::class, 'getTermsAndConditions'])->name('termsandCondition');
+Route::get('/privacy-policy',[TermsAndConditionController::class, 'getPrivacyPolicy'])->name('privacyPolicy');
 
 });
 

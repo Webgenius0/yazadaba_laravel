@@ -9,57 +9,70 @@ use Illuminate\Support\Facades\Log;
 use App\Helpers\Helper;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TermsandCondition;
+use App\Models\PrivacyPolicy;
 
 
 class TermsAndConditionController extends Controller
 {
-    public function updateOrCreate(Request $request): \Illuminate\Http\JsonResponse
-    {
+    public function getTermsAndConditions(): \Illuminate\Http\JsonResponse
+{
+    try {
+        
+        $user = Auth::user();
 
-        //dd($request->all());
-        try {
-        $user=Auth::user();
-           // dd($user);
-        if(!$user)
-        {
+        if (!$user) {
             return Helper::jsonErrorResponse('User not authenticated.', 401);
         }
 
-        if ($user->role != "admin") {
-            return Helper::jsonResponse(false, 'Access denied. User is not an admin.', 403, []);
+        $termsAndConditions = TermsandCondition::first();
+      
+        if (!$termsAndConditions) {
+            return Helper::jsonResponse(false, 'Terms and Conditions not found.', 404, []);
         }
-
-        $request->validate([
-            'terms'=>'nullable|string',
-            'conditions'=>'nullable|string',
+        return Helper::jsonResponse(true, 'Terms and Conditions retrieved successfully.', 200, [
+            'terms' => strip_tags($termsAndConditions->terms),
+            'conditions' => strip_tags($termsAndConditions->conditions),
         ]);
+    } catch (\Throwable $th) {
+  
+        Log::error($th->getMessage());
 
-        $termsandconditon= TermsandCondition::first();
-
-        if(!$termsandconditon)
-        {
-            $termsandconditon=TermsandCondition::Create([
-                'terms'=>$request->terms,
-
-                'conditions'=>$request->conditions
-            ]);
-        }
-        else{
-
-            $termsandconditon->update([
-                'terms'=>$request->terms,
-                'conditions'=>$request->conditions
-            ]);
-        }
-
-        return Helper::jsonResponse(true, 'Terms and Conditions updated successfully.', 200, [
-            'terms' => $termsandconditon->terms,
-            'conditions' => $termsandconditon->conditions,
-        ]);
-
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return Helper::jsonResponse(false, 'Something went wrong.', 500);
-        }
+        return Helper::jsonResponse(false, 'Something went wrong.', 500);
     }
+}
+
+
+ 
+
+    public function getPrivacyPolicy(): \Illuminate\Http\JsonResponse
+{
+    try {
+        
+        $user = Auth::user();
+
+       
+        if (!$user) {
+            return Helper::jsonErrorResponse('User not authenticated.', 401);
+        }
+
+        $privacyPolicy = Privacypolicy::first();
+
+     
+        if (!$privacyPolicy) {
+            return Helper::jsonResponse(false, 'Privacy Policy not found.', 404, []);
+        }
+
+ 
+        return Helper::jsonResponse(true, 'Privacy Policy retrieved successfully.', 200, [
+            'privacy_policy' => strip_tags ($privacyPolicy->privacy_policy),
+            'policy' => strip_tags( $privacyPolicy->policy),
+        ]);
+    } catch (Exception $e) {
+ 
+        Log::error($e->getMessage());
+
+        return Helper::jsonResponse(false, 'Something went wrong.', 500);
+    }
+}
+
 }

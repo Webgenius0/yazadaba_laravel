@@ -1,6 +1,6 @@
 @extends('backend.app')
 
-@section('title', 'Profile Setting')
+@section('title', 'Privacy Policy')
 
 @section('content')
     <div class="content-wrapper">
@@ -8,7 +8,7 @@
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Terms And Conditions</h4>
+                        <h4 class="card-title">Privacy Policy</h4>
                      
                         <div class="mt-4">
                             <form id="termsForm" class="forms-sample" method="POST" action="{{route('admin.terms-and-condition.updatePrivecyPolicy')}}" >
@@ -17,7 +17,7 @@
                                     <div class="col-12">
                                         <label class="form-lable">Privecy</label>
                                   
-                                            <textarea class="form-control form-control-solid" name="privacy_policy" id="privacy_policy" value="">{{  $privecyPolicy->privacy_policy ?? 'privacy'  }}</textarea>
+                                            <textarea class="form-control form-control-solid" name="privacy_policy" id="privacy" value="">{{  $privecyPolicy->privacy_policy ?? 'privacy'  }}</textarea>
 
                                         @error('privacy')
                                             <span class="invalid-feedback" role="alert">
@@ -59,13 +59,13 @@
 <script>
    
     ClassicEditor
-            .create(document.querySelector('#terms'))
+            .create(document.querySelector('#privacy'))
             .catch(error => {
                 console.error(error);
             });
 
  ClassicEditor
-            .create(document.querySelector('#conditions'))
+            .create(document.querySelector('#policy'))
             .catch(error => {
                 console.error(error);
             });

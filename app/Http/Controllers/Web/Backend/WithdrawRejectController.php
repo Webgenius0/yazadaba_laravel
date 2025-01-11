@@ -9,6 +9,9 @@ use App\Models\WithdrawRequest;
 use Exception;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\DB;
+use App\Models\RejectReason;
+use Predis\Command\Redis\SAVE;
 
 class WithdrawRejectController extends Controller
 {
@@ -67,4 +70,45 @@ class WithdrawRejectController extends Controller
         return view('backend.layout.withdraw_reject.show',compact('user','courses','bank_info'));
     }
 
+    public function rejectReasion(Request $request, $id)
+    {
+        try {
+            // Attempt to find the withdraw request
+            $withdrawRequest = WithdrawRequest::find($id);
+            if (!$withdrawRequest) {
+                return response()->json(['success' => false, 'message' => 'Withdraw request not found.']);
+            }
+        
+            // Validate the incoming request data
+            $request->validate([
+                'reason' => 'required',
+            ]);
+        
+            // Create a new RejectReason record
+            $reason = new RejectReason();
+            $reason->reason = $request->reason;
+            $reason->user_id = $withdrawRequest->user_id;
+            $reason->save();
+        
+            // Return a success response with the created data
+            return response()->json([
+                'success' => true,
+                'message' => 'Rejected successfully.',
+                'data' => $reason
+            ]);
+        } catch (\Exception $e) {
+            // Catch any exceptions and return a failure response
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+  
+   
 }
+
+    
+    
+    

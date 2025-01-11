@@ -125,7 +125,7 @@
         </li>
 
         <!--privacyPolicy-->
-        <li class="menu-item ">
+        <li class="menu-item {{Request::routeIs('admin.terms-and-condition.privacyPolicy') ? 'active' : ''}}">
             <a class="menu-link" href="{{ route('admin.terms-and-condition.privacyPolicy') }}">
             <i class="menu-icon tf-icons bx bx-lock"></i>
 
