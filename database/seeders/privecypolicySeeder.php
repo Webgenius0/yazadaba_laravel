@@ -13,7 +13,7 @@ class privecypolicySeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('privacy_policies')->insert([
+        DB::table('privacypolicies')->insert([
             [
                 'privacy_policy' => 'This course was amazing! Highly recommend.',
                 'policy' => 'This course was amazing! Highly recommend.',

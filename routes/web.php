@@ -89,6 +89,9 @@ Route::controller(WithdrawRejectController::class)->prefix('admin/withdraw/rejec
 Route::controller(TermsAndConditionController::class)->prefix('admin/terms-and-condition')->name('admin.terms-and-condition.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::post('/terms-and-condition', 'update')->name('update');
+
+    Route::get('/privacy-policy', 'privacyPolicy')->name('privacyPolicy');
+    Route::post('/privacy-policy/update', 'updatePrivecyPolicy')->name('updatePrivecyPolicy');
 });
 // Withdraw Request all route end
 

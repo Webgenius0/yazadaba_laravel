@@ -33,9 +33,7 @@
 
         <!-- Category -->
         <li
-            class="menu-item {{ Request::routeIs('admin.category.*') || Request::routeIs('admin.category') ?
-            'active' : ''
-            }}">
+            class="menu-item {{ Request::routeIs('admin.category.*') || Request::routeIs('admin.category') ? 'active' : '' }}">
             <a href="{{ route('admin.category.index') }}" class="menu-link">
                 <i class='menu-icon tf-icons bx bxs-badge-check'></i>
                 <div data-i18n="Layouts">Categories</div>
@@ -45,9 +43,7 @@
 
         <!-- Grade Level start  -->
         <li
-            class="menu-item {{ Request::routeIs('admin.grade-level.*') || Request::routeIs('admin.grade-level') ? 'active'
-            : ''
-            }}">
+            class="menu-item {{ Request::routeIs('admin.grade-level.*') || Request::routeIs('admin.grade-level') ? 'active' : '' }}">
             <a href="{{ route('admin.grade-level.index') }}" class="menu-link">
                 <i class='menu-icon tf-icons bx bxs-badge-check'></i>
                 <div data-i18n="Layouts">Grade Levels</div>
@@ -57,8 +53,7 @@
 
         <!-- Course start -->
         <li
-            class="menu-item {{ Request::routeIs('admin.course.*') || Request::routeIs('admin.course') ? 'active' : ''
-            }}">
+            class="menu-item {{ Request::routeIs('admin.course.*') || Request::routeIs('admin.course') ? 'active' : '' }}">
             <a href="{{ route('admin.course.index') }}" class="menu-link">
                 <i class='menu-icon tf-icons bx bxs-badge-check'></i>
                 <div data-i18n="Layouts">Courses</div>
@@ -66,11 +61,12 @@
         </li>
         <!-- Course end -->
         <!-- Withdraw Request Start -->
-        <li class="menu-item {{
-                Request::routeIs('admin.withdraw.request*') ||
-                Request::routeIs('admin.withdraw.complete*') ||
-                Request::routeIs('admin.withdraw.reject*') ? 'active open' : ''
-                              }}">
+        <li
+            class="menu-item {{ Request::routeIs('admin.withdraw.request*') ||
+            Request::routeIs('admin.withdraw.complete*') ||
+            Request::routeIs('admin.withdraw.reject*')
+                ? 'active open'
+                : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-cog"></i>
                 <div data-i18n="Layouts">Withdraw</div>
@@ -102,24 +98,34 @@
 
             <ul class="menu-sub">
                 <li class="menu-item {{ Request::routeIs('system.setting') ? 'active' : '' }}"><a class="menu-link"
-                                                                                                  href="{{ route('system.setting') }}">System
+                        href="{{ route('system.setting') }}">System
                         Settings</a></li>
 
                 <li class="menu-item {{ Request::routeIs('system.mail.index') ? 'active' : '' }}"><a class="menu-link"
-                                                                                                     href="{{ route('system.mail.index') }}">Mail
+                        href="{{ route('system.mail.index') }}">Mail
                         Setting</a></li>
 
             </ul>
         </li>
 
 
-       <!--terms&&condition-->
+        <!--terms&&condition-->
         <li class="menu-item {{ Request::routeIs('admin.terms-and-condition.index') ? 'active' : '' }}">
             <a class="menu-link" href="{{ route('admin.terms-and-condition.index') }}">
-            <i class="menu-icon tf-icons bx bx-file"></i>
+                <i class="menu-icon tf-icons bx bx-file"></i>
 
 
-                <div data-i18n="Support">Terms&Condition</div>
+                <div data-i18n="Support">Terms & Condition</div>
+            </a>
+        </li>
+
+
+        <!--privacyPolicy-->
+        <li class="menu-item ">
+            <a class="menu-link" href="{{ route('admin.terms-and-condition.privacyPolicy') }}">
+                <i class="menu-icon tf-icons bx bx-lock"></i>
+
+                <div data-i18n="Support">Privacy Policy</div>
             </a>
         </li>
 
