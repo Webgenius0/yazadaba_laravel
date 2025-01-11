@@ -65,17 +65,6 @@
             </a>
         </li>
         <!-- Course end -->
-        <!-- Publication request start -->
-        <li
-            class="menu-item {{ Request::routeIs('course.publication.*') || Request::routeIs('course.publication') ? 'active' : ''
-            }}">
-            <a href="{{ route('course.publication.index') }}" class="menu-link">
-                <i class='menu-icon tf-icons bx bxs-badge-check'></i>
-                <div data-i18n="Layouts">Publication Request</div>
-            </a>
-        </li>
-        <!-- Publication request end -->
-
         <!-- Withdraw Request Start -->
         <li class="menu-item {{
                 Request::routeIs('admin.withdraw.request*') ||

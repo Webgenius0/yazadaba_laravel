@@ -178,7 +178,6 @@ class CourseController extends Controller
             return Helper::jsonResponse(false, 'Something went wrong.', 500);
         }
     }
-
     public function publishRequest($id): \Illuminate\Http\JsonResponse
     {
         $user = Auth::user();

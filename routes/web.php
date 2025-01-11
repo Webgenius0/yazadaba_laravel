@@ -85,11 +85,6 @@ Route::controller(WithdrawRejectController::class)->prefix('admin/withdraw/rejec
     Route::post('/{id}', 'store')->name('store');
 });
 
-Route::controller(\App\Http\Controllers\Web\Backend\CoursePublicationController::class)->prefix('course/publication')->name('course.publication.')->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::delete('/{id}', 'destroy')->name('destroy');
-});
-
 //Terms && condition
 Route::controller(TermsAndConditionController::class)->prefix('admin/terms-and-condition')->name('admin.terms-and-condition.')->group(function () {
     Route::get('/', 'index')->name('index');
