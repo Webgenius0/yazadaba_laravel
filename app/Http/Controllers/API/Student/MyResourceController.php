@@ -60,12 +60,12 @@ class MyResourceController extends Controller
                 $completed = $completionPercentage === 100;
 
                 // Controller action after course completion
-                $certificateImage = Helper::generateCertificateWithDynamicName($user, $enrollment->course);
-                Certificate::create([
-                    'user_id' => $user->id,
-                    'course_id' => $enrollment->course->id,
-                    'certificate_image' => $certificateImage,
-                ]);
+//                $certificateImage = Helper::generateCertificateWithDynamicName($user, $enrollment->course);
+//                Certificate::create([
+//                    'user_id' => $user->id,
+//                    'course_id' => $enrollment->course->id,
+//                    'certificate_image' => $certificateImage,
+//                ]);
 
                 // Get lesson details
                 $lessons = $enrollment->course->courseModules->map(function ($module) {
@@ -86,7 +86,7 @@ class MyResourceController extends Controller
                         'cover_image' => $enrollment->course->cover_image,
                         'course_duration' => $formattedDuration,
                         'completion_percentage' => round($completionPercentage, 1),
-                        'certificate_image' => url($certificateImage),
+//                        'certificate_image' => url($certificateImage),
                         'lessons' => $lessons,
                     ];
                 }
@@ -99,7 +99,7 @@ class MyResourceController extends Controller
                         'cover_image' => $enrollment->course->cover_image,
                         'course_duration' => $formattedDuration,
                         'completion_percentage' => round($completionPercentage, 1),
-                        'certificate_image' => url($certificateImage),
+//                        'certificate_image' => url($certificateImage),
                         'lessons' => $lessons,
                     ];
                 }
