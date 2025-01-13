@@ -9,6 +9,7 @@
             /* Green */
             color: white !important;
         }
+
         .btn-smaller {
             padding: 2px 8px;
             font-size: 0.8rem;
@@ -45,14 +46,14 @@
                         <div class="table-responsive mt-4 p-4">
                             <table class="table table-hover" id="data-table">
                                 <thead>
-                                <tr>
-                                    <th>SI</th>
-                                    <th>Name</th>
-                                    <th>Request Amount</th>
-                                    <th>Status</th>
-                                    <th>Created At</th>
-                                    <th>Actions</th>
-                                </tr>
+                                    <tr>
+                                        <th>SI</th>
+                                        <th>Name</th>
+                                        <th>Request Amount</th>
+                                        <th>Status</th>
+                                        <th>Created At</th>
+                                        <th>Actions</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
                                 </tbody>
@@ -90,8 +91,8 @@
                 let dTable = $('#data-table').DataTable({
                     order: [],
                     lengthMenu: [
-                        [ 10, 25, 50, 100, 200, 500, -1 ],
-                        [ "10", "25", "50", "100", "200", "500", "All" ]
+                        [10, 25, 50, 100, 200, 500, -1],
+                        ["10", "25", "50", "100", "200", "500", "All"]
                     ],
 
                     pageLength: 10,
@@ -122,11 +123,11 @@
                     },
 
                     columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                    },
+                            data: 'DT_RowIndex',
+                            name: 'DT_RowIndex',
+                            orderable: false,
+                            searchable: false
+                        },
                         {
                             data: 'user_name',
                             name: 'user_name',
@@ -167,6 +168,7 @@
                 });
             }
         });
+
 
         // Sweet alert Delete confirm
         const deleteAlert = (id) => {
@@ -222,6 +224,7 @@
                 console.log(e)
             }
         }
+
         function showStatusChangeAlert(id) {
             event.preventDefault();
 
@@ -263,7 +266,5 @@
                 }
             });
         }
-
     </script>
 @endpush
-

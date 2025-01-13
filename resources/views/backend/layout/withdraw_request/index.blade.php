@@ -9,6 +9,7 @@
             /* Green */
             color: white !important;
         }
+
         .btn-smaller {
             padding: 2px 8px;
             font-size: 0.8rem;
@@ -45,14 +46,14 @@
                         <div class="table-responsive mt-4 p-4">
                             <table class="table table-hover" id="data-table">
                                 <thead>
-                                <tr>
-                                    <th>SI</th>
-                                    <th>Name</th>
-                                    <th>Request Amount</th>
-                                    <th>Status</th>
-                                    <th>Created At</th>
-                                    <th>Actions</th>
-                                </tr>
+                                    <tr>
+                                        <th>SI</th>
+                                        <th>Name</th>
+                                        <th>Request Amount</th>
+                                        <th>Status</th>
+                                        <th>Created At</th>
+                                        <th>Actions</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
                                 </tbody>
@@ -65,20 +66,16 @@
     </div>
 
 @endsection
-
-
 @push('script')
     {{-- Datatable --}}
     <script src="{{ asset('backend/vendors/datatable/js/datatables.min.js') }}"></script>
-    {{-- sweet alart --}}
+    {{-- SweetAlert --}}
     <script src="{{ asset('backend/vendors/sweetalert/sweetalert2@11.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         $(document).ready(function() {
-            var searchable = [];
-            var selectable = [];
             $.ajaxSetup({
                 headers: {
                     "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
@@ -86,18 +83,16 @@
             });
 
             if (!$.fn.DataTable.isDataTable('#data-table')) {
-                let dTable = $('#data-table').DataTable({
+                $('#data-table').DataTable({
                     order: [],
                     lengthMenu: [
-                        [ 10, 25, 50, 100, 200, 500, -1 ],
-                        [ "10", "25", "50", "100", "200", "500", "All" ]
+                        [10, 25, 50, 100, 200, 500, -1],
+                        ["10", "25", "50", "100", "200", "500", "All"]
                     ],
-
                     pageLength: 10,
                     processing: true,
                     responsive: true,
                     serverSide: true,
-
                     language: {
                         processing: `<div class="text-center">
                             <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
@@ -108,66 +103,68 @@
                         search: '',
                         searchPlaceholder: 'Search..'
                     },
-
-
-                    scroller: {
-                        loadingIndicator: false
-                    },
-                    pagingType: "full_numbers",
-                    dom: "<'row justify-content-between table-topbar'<'col-md-2 col-sm-4 px-0'l><'col-md-2 col-sm-4 px-0'f>>tipr",
                     ajax: {
                         url: "{{ route('admin.withdraw.request.index') }}",
                         type: "get",
                     },
-
-                    columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                    },
-                        {
-                            data: 'user_name',
-                            name: 'user_name',
-                            orderable: true,
-                            searchable: true
-                        },
-                        {
-                            data: 'request_amount',
-                            name: 'request_amount',
-                            orderable: true,
-                            searchable: true
-                        },
-
-                        {
-                            data: 'status',
-                            name: 'status',
-                            orderable: true,
-                            searchable: true
-                        },
-                        {
-                            data: 'created_at',
-                            name: 'created_at',
-                            orderable: true,
-                            searchable: true
-                        },
-
-                        {
-                            data: 'action',
-                            name: 'action',
-                            orderable: false,
-                            searchable: false
-                        },
+                    columns: [
+                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                        { data: 'user_name', name: 'user_name', orderable: true, searchable: true },
+                        { data: 'amount', name: 'amount', orderable: true, searchable: true },
+                        { data: 'status', name: 'status', orderable: true, searchable: true },
+                        { data: 'created_at', name: 'created_at', orderable: true, searchable: true },
+                        { data: 'action', name: 'action', orderable: false, searchable: false },
                     ],
-                });
-
-                new DataTable('#example', {
-                    responsive: true
                 });
             }
         });
 
-        // Sweet alert Delete confirm
+        function openRejectModal(id) {
+            // Open the modal for rejection using Bootstrap 5 API
+            const modalElement = document.getElementById('rejectModal' + id);
+            const bootstrapModal = new bootstrap.Modal(modalElement);
+            bootstrapModal.show();
+        }
+
+        function submitRejectionReason(id, userId) {
+            // Get the rejection reason from the textarea
+            const rejectionReasonField = document.getElementById('rejectReason');
+            const rejectionReason = rejectionReasonField.value;
+
+            // Send the data to the server using fetch
+            fetch('/withdraw-requests/' + id + '/' + userId + '/reject', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ rejection_reason: rejectionReason })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toastr.success("Withdrawal request processed successfully.");
+
+                        const modalElement = document.getElementById('rejectModal' + id);
+                        const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+                        bootstrapModal.hide();
+
+                        // Clear the textarea field
+                        rejectionReasonField.value = '';
+                    } else {
+                        toastr.error(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error('Something went wrong. Please try again.');
+                });
+        }
+
+
+
+
+        // SweetAlert Delete confirm
         const deleteAlert = (id) => {
             Swal.fire({
                 title: "Are you sure?",
@@ -184,8 +181,7 @@
             });
         }
 
-
-        // deleting an auction
+        // Deleting an auction
         const deleteAuction = (id) => {
             try {
                 let url = '{{ route('admin.category.destroy', ':id') }}';
@@ -207,62 +203,66 @@
                             });
                         } else if (response.errors) {
                             console.log(response.errors[0]);
-                            errorAlert();
+                            toastr.error(response.errors[0]);
                         } else {
                             toastr.success(response.message);
                         }
                     },
                     error: (error) => {
                         console.log(error.message);
-                        errorAlert()
+                        toastr.error('Something went wrong.');
                     }
-                })
+                });
             } catch (e) {
-                console.log(e)
+                console.log(e);
             }
         }
-        function showStatusChangeAlert(id) {
+
+        // Status change confirmation
+        function showStatusChangeAlert(event, id, status) {
             event.preventDefault();
 
             Swal.fire({
                 title: 'Are you sure?',
-                text: 'You want to update the status?',
+                text: 'You want to update the status to ' + status + '?',
                 icon: 'info',
                 showCancelButton: true,
                 confirmButtonText: 'Yes',
                 cancelButtonText: 'No',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    statusChange(id);
+                    statusChange(id, status);
                 }
             });
         }
 
         // Status Change
-        function statusChange(id) {
-            var url = '{{ route('admin.category.status', ':id') }}';
+        function statusChange(id, status) {
+            var url = '{{ route('admin.withdraw.request.status', ':id') }}';
             url = url.replace(':id', id);
 
             $.ajax({
                 type: "GET",
                 url: url,
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    status: status,
+                },
                 success: function(resp) {
-                    console.log(resp);
                     $('#data-table').DataTable().ajax.reload();
+
                     if (resp.success === true) {
                         toastr.success(resp.message);
-                    } else if (resp.errors) {
-                        toastr.error(resp.errors[0]);
                     } else {
                         toastr.error(resp.message);
                     }
-                }, // success end
-                error: function(error) {
-                    toastr.error('Something went wrong, please try again.');
+                },
+                error: function(xhr, status, error) {
+                    toastr.error('Something went wrong. Please try again.');
                 }
             });
         }
-
     </script>
 @endpush
+
 

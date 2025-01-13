@@ -90,11 +90,23 @@ class HomeController extends Controller
 
             // Prepare the learningCourses data and calculate completion percentage
             $learningCoursesData = $learningCourses->map(function ($enrollment) use ($user) {
+                $course = $enrollment->course;
+                if (!$course) {
+                    return [
+                        'course_id' => 0,
+                        'category' => '',
+                        'name' => '',
+                        'cover_image' => '',
+                        'course_duration' => '',
+                        'completion_percentage' => 0,
+                    ];
+                }
+
                 // Calculate the total number of modules for the course
-                $totalModules = $enrollment->course->courseModules->count();
+                $totalModules = $course->courseModules->count();
 
                 // Count the number of completed modules by the user
-                $completedModules = $enrollment->course->isCompletes()
+                $completedModules = $course->isCompletes()
                     ->where('user_id', $user->id)
                     ->where('status', 'complete')
                     ->count();
@@ -106,7 +118,7 @@ class HomeController extends Controller
                 $completionPercentage = round($completionPercentage);
 
                 // Calculate total duration of modules (without using DB::raw)
-                $totalDurationInSeconds = $enrollment->course->courseModules->sum(function ($module) {
+                $totalDurationInSeconds = $course->courseModules->sum(function ($module) {
                     // Convert module duration to seconds (assuming module_video_duration is in the correct format)
                     $durationParts = explode(':', $module->module_video_duration);
                     $hours = (int)($durationParts[0] ?? 0);
@@ -126,17 +138,17 @@ class HomeController extends Controller
                 }
 
                 return [
-                    'course_id' => $enrollment->course->id,
-                    'category' => $enrollment->course->category->name,
-                    'name' => $enrollment->course->name,
-                    'cover_image' => $enrollment->course->cover_image,
+                    'course_id' => $course->id ?? 0,
+                    'category' => $course->category->name ?? '',
+                    'name' => $course->name ?? '',
+                    'cover_image' => $course->cover_image ?? '',
                     'course_duration' => $formattedDuration,
                     'completion_percentage' => $completionPercentage,
                 ];
             });
 
             // Remove duplicate courses based on course_id
-            $learningCoursesData = $learningCoursesData->unique('id');
+            $learningCoursesData = $learningCoursesData->unique('course_id');
 
             return Helper::jsonResponse(true, 'Courses and Categories retrieved successfully.', 200, [
                 'category' => $CourseCategory,

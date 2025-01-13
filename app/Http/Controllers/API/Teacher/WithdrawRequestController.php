@@ -4,30 +4,38 @@ namespace App\Http\Controllers\API\Teacher;
 
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
+use App\Models\Course;
+use App\Models\CourseEnroll;
 use App\Models\WithdrawRequest;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class WithdrawRequestController extends Controller
 {
 
-    public function index(Request $request){
+    public function withdrawRequest(Request $request)
+    {
+        // Validate the incoming request
         $request->validate([
-            'request_amount' => 'required|numeric',
-            'bank_info' =>'required'
+            'amount' => 'required|numeric|min:1',
+            'bank_info' => 'required|string|max:255',
         ]);
-        try {
-            $user = auth()->user();
-            $withdrawRequest = new WithdrawRequest();
-            $withdrawRequest->user_id = $user->id;
-            $withdrawRequest->request_amount = $request->request_amount;
-            $withdrawRequest->bank_info = $request->bank_info;
-            $withdrawRequest->save();
-            return Helper::jsonResponse(true, "Withdraw request successfully created!",200, $withdrawRequest);
-        }catch (Exception $exception){
-            Log::error($exception);
-            return Helper::jsonResponse(false, $exception->getMessage(), 500, $exception);
-        }
+
+        // Create the withdrawal request
+        $withdrawalRequest = WithdrawRequest::create([
+            'user_id' => auth()->id(),
+            'amount' => $request->amount,
+            'bank_info' => $request->bank_info,
+            'status' => 'pending',
+        ]);
+
+        // Return success response
+        return response()->json([
+            'success' => true,
+            'message' => 'Withdrawal request created successfully.',
+            'data' => $withdrawalRequest
+        ]);
     }
 }

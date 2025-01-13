@@ -20,10 +20,9 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CategoriesTableSeeder::class,
             GradeLevelsTableSeeder::class,
-            ReviewSeeder::class,
-            CourseEnrollSeeder::class,
-            WithdrawRequestSeeder::class
+            // ReviewSeeder::class,
+            // CourseEnrollSeeder::class,
+            // WithdrawRequestSeeder::class
         ]);
-
     }
 }

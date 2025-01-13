@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('withdraw_requests', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->double('request_amount');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->decimal('amount', 10, 2);
             $table->text('bank_info');
             $table->enum('status', ['pending', 'complete', 'rejected'])->default('pending');
+            $table->text('rejection_reason')->nullable();
             $table->timestamps();
         });
     }

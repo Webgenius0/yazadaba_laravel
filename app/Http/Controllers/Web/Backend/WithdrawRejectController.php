@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\RejectReason;
 use App\Models\User;
 use App\Models\WithdrawRequest;
 use Exception;
@@ -16,7 +17,7 @@ class WithdrawRejectController extends Controller
     {
         try {
             if ($request->ajax()) {
-                $data = WithdrawRequest::orderBy('created_at', 'desc')->where('status','rejected')->get();
+                $data = WithdrawRequest::orderBy('created_at', 'desc')->where('status', 'rejected')->get();
                 return DataTables::of($data)
                     ->addIndexColumn()
                     ->addColumn('user_name', function ($row) {
@@ -51,7 +52,7 @@ class WithdrawRejectController extends Controller
                     </a>
                 </div>';
                     })
-                    ->rawColumns(['action','created_at','status'])
+                    ->rawColumns(['action', 'created_at', 'status'])
                     ->make(true);
             }
             return view('backend.layout.withdraw_reject.index');
@@ -60,11 +61,11 @@ class WithdrawRejectController extends Controller
         }
     }
 
-    public function show($id){
+    public function show($id)
+    {
         $user = User::find($id);
         $courses = Course::where('user_id', $id)->get();
         $bank_info = WithdrawRequest::find($id);
-        return view('backend.layout.withdraw_reject.show',compact('user','courses','bank_info'));
+        return view('backend.layout.withdraw_reject.show', compact('user', 'courses', 'bank_info'));
     }
-
 }
