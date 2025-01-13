@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\WithdrawRequest;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class WithdrawCompleteController extends Controller
@@ -37,7 +38,6 @@ class WithdrawCompleteController extends Controller
                         } elseif ($status == 'pending') {
                             return '<button class="btn btn-warning btn-sm" >' . htmlspecialchars($status) . '</button>';
                         } else {
-                            // Default button for any other status value
                             return '<button class="btn btn-secondary btn-sm">' . htmlspecialchars($status) . '</button>';
                         }
                     })
@@ -63,5 +63,20 @@ class WithdrawCompleteController extends Controller
         $user = User::find($id);
         $courses = Course::where('user_id', $id)->get();
      return view('backend.layout.withdraw_complete.show',compact('user','courses'));
+    }
+
+    public function destroy($id){
+        try {
+            $data = WithdrawRequest::where('status', 'complete')->find($id);
+            if (!$data){
+                return response()->json(['t-error' => true,'message' => 'Record not found.']);
+            }
+            $data->delete();
+            return response()->json(['t-success' => true,'message' => 'Record deleted successfully.']);
+        }catch (Exception $e){
+            Log::error($e->getMessage());
+            return response()->json(['t-error' => true,'message' => 'Failed to delete record.']);
+        }
+
     }
 }

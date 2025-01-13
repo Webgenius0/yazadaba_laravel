@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\WithdrawRequest;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class WithdrawRejectController extends Controller
@@ -67,5 +68,20 @@ class WithdrawRejectController extends Controller
         $courses = Course::where('user_id', $id)->get();
         $bank_info = WithdrawRequest::find($id);
         return view('backend.layout.withdraw_reject.show', compact('user', 'courses', 'bank_info'));
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $data = WithdrawRequest::where('status', 'rejected')->find($id);
+            if (!$data) {
+                return response()->json(['t-error' => true, 'message' => 'Record not found.']);
+            }
+            $data->delete();
+            return response()->json(['t-success' => true, 'message' => 'Record deleted successfully.']);
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json(['t-error' => true, 'message' => 'Failed to delete record.']);
+        }
     }
 }

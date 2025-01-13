@@ -40,30 +40,15 @@ class WithdrawRequestController extends Controller
                         ' . ucfirst($data->status) . '  <!-- Display status as the button text -->
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton' . $data->id . '" style="font-size: 12px;">
-                        <li><a class="dropdown-item" href="#" onclick="showStatusChangeAlert(' . $data->id . ', \'complete\')" style="padding: 5px 10px;">Complete</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="showStatusChangeAlert(' . $data->id . ', \'pending\')" style="padding: 5px 10px;">Pending</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="openRejectModal(' . $data->id . ')" style="padding: 5px 10px;">Rejected</a></li>
+                        <li>
+                              <a class="dropdown-item" href="#" onclick="showStatusChangeAlert(event, ' . $data->id . ', \'complete\')" style="padding: 5px 10px;">Complete</a>
+                            </li>
+                             <li><a class="dropdown-item" href="#" onclick="showStatusChangeAlert(' . $data->id . ', \'pending\')" style="padding: 5px 10px;">Pending</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="openRejectModal(event,' . $data->id . ' , '. $data->user_id .',\'rejected\')" style="padding: 5px 10px;">Rejected</a></li>
                     </ul>
                 </div>
                 <!-- Modal for rejection reason -->
-                <div class="modal fade" id="rejectModal' . $data->id . '" tabindex="-1" aria-labelledby="rejectModalLabel' . $data->id . '" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="rejectModalLabel' . $data->id . '">Provide Rejection Reason</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                              <textarea id="rejectReason" class="form-control" rows="3" placeholder="Enter rejection reason"></textarea>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-danger" onclick="submitRejectionReason(' . $data->id . ' ,'.$data->user_id.')">Reject</button>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>';
+              ';
 
 
                     })
@@ -141,9 +126,11 @@ class WithdrawRequestController extends Controller
         // Find the withdrawal request by ID
         $withdrawRequest = WithdrawRequest::findOrFail($id);
 
+        // Ensure that the withdrawal request belongs to the correct user
         if ($withdrawRequest->user_id != $userId) {
             return response()->json(['error' => 'User mismatch for this withdrawal request'], 403);
         }
+
         // Update the status and rejection reason
         $withdrawRequest->status = 'rejected';
         $withdrawRequest->rejection_reason = $request->input('rejection_reason');
@@ -152,5 +139,20 @@ class WithdrawRequestController extends Controller
         // Return a JSON response
         return response()->json(['message' => 'Withdrawal request rejected successfully.']);
     }
+
+    public function destroy($id){
+        try {
+            $data = WithdrawRequest::where('status','pending')->find($id);
+            if (!$data){
+                return response()->json(['t-error' => true,'message' => 'Record not found.']);
+            }
+            $data->delete();
+            return response()->json(['t-success' => true,'message' => 'Record deleted successfully.']);
+        }catch (Exception $e){
+            Log::error($e->getMessage());
+            return response()->json(['t-error' => true,'message' => 'Failed to delete record.']);
+        }
+        }
+
 
 }

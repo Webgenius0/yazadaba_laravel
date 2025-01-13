@@ -134,8 +134,8 @@
                             searchable: true
                         },
                         {
-                            data: 'request_amount',
-                            name: 'request_amount',
+                            data: 'amount',
+                            name: 'amount',
                             orderable: true,
                             searchable: true
                         },
@@ -181,16 +181,14 @@
                 confirmButtonText: "Yes, delete it!"
             }).then((result) => {
                 if (result.isConfirmed) {
-                    deleteAuction(id);
+                    deleteWithdrawRequest(id);
                 }
             });
         }
-
-
         // deleting an auction
-        const deleteAuction = (id) => {
+        const deleteWithdrawRequest = (id) => {
             try {
-                let url = '{{ route('admin.category.destroy', ':id') }}';
+                let url = '{{ route('admin.withdraw.complete.destroy', ':id') }}';
                 let csrfToken = `{{ csrf_token() }}`;
                 $.ajax({
                     type: "DELETE",

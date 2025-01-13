@@ -64,15 +64,9 @@ Route::controller(WithdrawRequestController::class)->prefix('admin/withdraw/requ
     Route::delete('/{id}', 'destroy')->name('destroy');
     Route::get('status/{id}', 'status')->name('status');
     Route::get('/{id}', 'show')->name('show');
-    //Route::post('/reason/{id}', 'submitRejectionReason')->name('submitRejectionReason');
-    // routes/web.php
-
-
 });
 // routes/web.php
 Route::post('/withdraw-requests/{id}/{userId}/reject', [WithdrawRequestController::class, 'submitRejectionReason']);
-
-
 
 // Withdraw Request all route end
 // Withdraw Request all route start
