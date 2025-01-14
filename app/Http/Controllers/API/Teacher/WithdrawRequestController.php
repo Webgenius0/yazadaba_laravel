@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Teacher;
 
 use App\Helpers\Helper;
+use App\Http\Controllers\API\Student\EnrollController;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\CourseEnroll;
@@ -22,6 +23,7 @@ class WithdrawRequestController extends Controller
             'amount' => 'required|numeric|min:1',
             'bank_info' => 'required|string|max:255',
         ]);
+//        $wallet = CourseEnroll::where('', $request->course_id)->first();
 
         // Create the withdrawal request
         $withdrawalRequest = WithdrawRequest::create([

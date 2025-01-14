@@ -39,12 +39,10 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::post('/logout', [LogoutController::class, 'logout']);
 
     //Teacher Profile management
-
     Route::get('/teacher/profile', [UserController::class, 'TeacherProfile']);
     Route::post('/teacher/upload-avatar', [UserController::class, 'TeacherUploadAvatar']);
     Route::post('/teacher/update-profile', [UserController::class, 'TeacherUpdateProfile']);
     Route::delete('/teacher/delete-profile', [UserController::class, 'TeacherDeleteProfile']);
-
     Route::post('/change-password', [ResetPasswordController::class, 'teacherPasswordManager']);
 
 
@@ -58,7 +56,7 @@ Route::group(['middleware' => 'auth:api'], static function () {
         Route::get('/get/categories', 'getCategories');
         Route::get('/get/grade-level', 'getGradeLevel');
         Route::post('/{id}/toggle-status', 'TogglePublished');
-        Route::get('/get/enrollcourse','myResource');
+        Route::get('/enroll/course','myResource');
     });
 
     Route::controller(CourseModuleController::class)->prefix('course-module')->group(function () {

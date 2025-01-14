@@ -9,6 +9,7 @@ use App\Models\Course;
 use App\Models\GradeLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Exception;
 use App\Models\CourseEnroll;
@@ -126,12 +127,13 @@ class CourseController extends Controller
     {
         $userId = Auth::id();
         $data = Course::find($id);
-
         if (!$data) {
             return Helper::jsonErrorResponse('Course not found.', 404);
         }
-        if ($data->cover_image) {
-            Helper::fileDelete($data->cover_image);
+        // Check if the course is already enrolled
+        $enrollCourse = CourseEnroll::where('course_id', $data->id)->exists();
+        if ($enrollCourse) {
+            return Helper::jsonErrorResponse('Course already enrolled.', 400);
         }
         if ($data->cover_image) {
             Helper::fileDelete($data->cover_image);
@@ -174,29 +176,45 @@ class CourseController extends Controller
             return Helper::jsonResponse(false, 'Something went wrong.', 500);
         }
     }
-
     public function TogglePublished($id): \Illuminate\Http\JsonResponse
     {
-        $userId = Auth::user();
-        $data = Course::find($id);
-        if (!$data) {
-            return Helper::jsonErrorResponse('Course not found.', 404);
+        try {
+            $userId = Auth::id();
+            $data = Course::where('user_id', $userId)->find($id);
+
+            // Check if course exists
+            if (!$data) {
+                return Helper::jsonErrorResponse('Course not found.', 404);
+            }
+
+            // Check if the course is already enrolled
+            $enrollCourse = CourseEnroll::where('course_id', $data->id)->exists();
+            if ($enrollCourse) {
+                return Helper::jsonErrorResponse('Course already enrolled.', 400);
+            }
+
+            // Check current status and toggle if valid
+            if ($data->status === 'active') {
+                $data->status = 'inactive';
+                $data->save();
+                return Helper::jsonResponse(true, 'Course has been deactivated successfully.', 200, $data);
+            } elseif ($data->status === 'inactive') {
+                return Helper::jsonErrorResponse('This course is inactive and cannot be reactivated.', 400);
+            }
+            // Default response for unexpected statuses
+            return Helper::jsonErrorResponse('Invalid course status.', 400);
+        }catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return Helper::jsonResponse(false, 'Something went wrong.', 500);
         }
-
-        // Toggle the status between 'active' and 'inactive'
-        $data->status = ($data->status === 'active') ? 'inactive' : 'active';
-
-        $data->save();
-        return Helper::jsonResponse(true, 'Course status toggled successfully', 200, $data);
     }
-
     public function myResource(Request $request)
     {
         try {
             $user = Auth::user();
 
             if (!$user || $user->role != 'teacher') {
-                return response()->json(['error' => 'Unauthorized'], 403);
+               return Helper::jsonErrorResponse('User not authenticated.', 401);
             }
 
             // Step 1: Fetch all courses for the specific teacher (user)
@@ -206,7 +224,6 @@ class CourseController extends Controller
             $responseData = $courses->map(function ($course) {
                 // Count the number of students enrolled in each course
                 $enrollsCount = CourseEnroll::where('course_id', $course->id)->count();
-
                 return [
 
                     'course_id' => $course->id,
@@ -219,9 +236,9 @@ class CourseController extends Controller
             });
 
             // Step 3: Return a combined response with all course data
-            return Helper::jsonResponse(true, 'Course Data fetched successfully', 200, $responseData);
+            return Helper::jsonResponse(true, 'Resource Data fetched successfully', 200, $responseData);
         } catch (Exception $e) {
-            // Log::error($e->getMessage());
+             Log::error($e->getMessage());
             return Helper::jsonErrorResponse($e->getMessage(), 500);
         }
     }
