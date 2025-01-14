@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             GradeLevelsTableSeeder::class,
             // ReviewSeeder::class,
             // CourseEnrollSeeder::class,
-            WithdrawRequestSeeder::class
+//            WithdrawRequestSeeder::class
         ]);
     }
 }

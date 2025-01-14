@@ -16,7 +16,6 @@ class MentorController extends Controller
 {
     public function index($user_id): \Illuminate\Http\JsonResponse
     {
-
         try {
             // Ensure the user is authenticated
             $userId = Auth::user();
@@ -28,7 +27,6 @@ class MentorController extends Controller
             }
             // Find the user by the provided user_id
             $user = User::find($user_id);
-
             // If user is not found
             if (!$user) {
                 return response()->json([
@@ -37,7 +35,6 @@ class MentorController extends Controller
                     'status_code' => 404
                 ]);
             }
-
             // Fetch total courses for this user
             $totalCourses = Course::where('user_id', $user->id)->count();
             // Calculate average rating for this user's courses

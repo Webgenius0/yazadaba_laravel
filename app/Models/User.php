@@ -34,7 +34,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes,Notifiable;
 
     public mixed $gender;
 

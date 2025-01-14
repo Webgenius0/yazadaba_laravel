@@ -1,54 +1,49 @@
 <?php
-
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class WithdrawRequestNotification extends Notification
 {
     use Queueable;
 
+    private $withdrawRequest;
+
     /**
      * Create a new notification instance.
+     *
+     * @param $withdrawRequest
      */
-    public function __construct()
+    public function __construct($withdrawRequest)
     {
-        //
+        $this->withdrawRequest = $withdrawRequest;
     }
 
     /**
      * Get the notification's delivery channels.
      *
-     * @return array<int, string>
+     * @param  mixed  $notifiable
+     * @return array
      */
-    public function via(object $notifiable): array
+    public function via(mixed $notifiable): array
     {
-        return ['mail'];
-    }
-
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
-                    ->line('Thank you for using our application!');
+        return ['database'];
     }
 
     /**
      * Get the array representation of the notification.
      *
-     * @return array<string, mixed>
+     * @param  mixed  $notifiable
+     * @return array
      */
-    public function toArray(object $notifiable): array
+    public function toDatabase(mixed $notifiable): array
     {
         return [
-            //
+            'message' => 'Your withdrawal request for ' . number_format($this->withdrawRequest->amount, 2) . ' has been submitted.',
+            'withdraw_request_id' => $this->withdrawRequest->id,
+            'amount' => $this->withdrawRequest->amount,
+            'status' => $this->withdrawRequest->status,
         ];
     }
 }
