@@ -125,7 +125,33 @@ class CourseController extends Controller
     public function delete($id): \Illuminate\Http\JsonResponse
     {
         $userId = Auth::id();
-        $data = Course::find($id);
+
+        if (!$userId) {
+            return Helper::jsonErrorResponse('User not authenticated.', 401);
+        }
+
+        $data = Course::where('user_id', $userId)->find($id);
+   
+        $enrollCourse=CourseEnroll::where('course_id',$data->id)->exists();
+
+        if($enrollCourse){
+            return Helper::jsonErrorResponse('Course already enrolled.', 404);
+        }
+
+        $coursemoudules= $data->courseModules;
+        foreach ($coursemoudules as $module) {
+            if($module->file){
+                Helper::fileDelete($module->file);
+            }
+            if($module->document_url){
+                Helper::fileDelete($module->document_url);
+            }
+            if($module->video_url){
+                Helper::deleteVimeoVideo($module->video_url);
+                
+            }
+                $module->delete();
+            }
 
         if (!$data) {
             return Helper::jsonErrorResponse('Course not found.', 404);
@@ -178,13 +204,25 @@ class CourseController extends Controller
     public function TogglePublished($id): \Illuminate\Http\JsonResponse
     {
         $userId = Auth::user();
-        $data = Course::find($id);
+        $data = Course::where('user_id', $userId->id)->find($id);
         if (!$data) {
             return Helper::jsonErrorResponse('Course not found.', 404);
         }
+        $enrollCourse=CourseEnroll::where('course_id',$data->id)->exists();
+        
+        if($enrollCourse){
+            return Helper::jsonErrorResponse('Course already enrolled.', 404);
+        }
+       
+      // toggle status change
 
-        // Toggle the status between 'active' and 'inactive'
-        $data->status = ($data->status === 'active') ? 'inactive' : 'active';
+      if ($data->status === 'active') {
+       
+        $data->status = 'inactive';
+    } elseif ($data->status === 'inactive') {
+       
+        return Helper::jsonErrorResponse('This course is inactive and cannot be set to active.', 400);
+    }
 
         $data->save();
         return Helper::jsonResponse(true, 'Course status toggled successfully', 200, $data);
@@ -225,5 +263,5 @@ class CourseController extends Controller
             return Helper::jsonErrorResponse($e->getMessage(), 500);
         }
     }
-    
+
 }

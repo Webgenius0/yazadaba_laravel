@@ -59,6 +59,7 @@ Route::group(['middleware' => 'auth:api'], static function () {
         Route::get('/get/grade-level', 'getGradeLevel');
         Route::post('/{id}/toggle-status', 'TogglePublished');
         Route::get('/get/enrollcourse','myResource');
+       
     });
 
     Route::controller(CourseModuleController::class)->prefix('course-module')->group(function () {
