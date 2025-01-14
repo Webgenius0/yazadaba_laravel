@@ -18,7 +18,7 @@
                                     <div class="col-12">
                                         <label class="form-lable">Privecy</label>
 
-                                        <textarea class="form-control form-control-solid" name="privacy_policy" id="privacy" value="">{{ $privecyPolicy->privacy_policy ?? 'privacy' }}</textarea>
+                                        <textarea class="form-control form-control-solid" name="privacy_policy" id="privacy" value="">{{ $privecyPolicy->privacy_policy ?? '' }}</textarea>
 
                                         @error('privacy')
                                             <span class="invalid-feedback" role="alert">
@@ -32,7 +32,7 @@
                                     <div class="col-12">
                                         <label class="form-lable">Policy</label>
 
-                                        <textarea class="form-control form-control-solid" name="policy" id="policy" value="">{{ $privecyPolicy->policy ?? 'policy' }}</textarea>
+                                        <textarea class="form-control form-control-solid" name="policy" id="policy" value="">{{ $privecyPolicy->policy ?? '' }}</textarea>
 
                                         @error('policy')
                                             <span class="invalid-feedback" role="alert">
