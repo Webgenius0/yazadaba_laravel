@@ -47,10 +47,7 @@ class WithdrawRequestController extends Controller
                         <li><a class="dropdown-item" href="#" onclick="openRejectModal(event,' . $data->id . ' , '. $data->user_id .',\'rejected\')" style="padding: 5px 10px;">Rejected</a></li>
                     </ul>
                 </div>
-                <!-- Modal for rejection reason -->
               ';
-
-
                     })
                     ->addColumn('action', function ($data) {
                         return '<div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
@@ -115,7 +112,6 @@ class WithdrawRequestController extends Controller
             ]);
         }
     }
-
     public function submitRejectionReason(Request $request, $id, $userId)
     {
         // Validate the incoming request

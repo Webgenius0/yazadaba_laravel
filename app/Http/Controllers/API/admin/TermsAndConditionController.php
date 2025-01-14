@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 use App\Helpers\Helper;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TermsandCondition;
-use App\Models\PrivacyPolicy;
+use App\Models\Privacypolicy;
 use Throwable;
 
 
@@ -25,7 +25,7 @@ class TermsAndConditionController extends Controller
             return Helper::jsonErrorResponse('User not authenticated.', 401);
         }
 
-        $termsAndConditions = TermsandCondition::first();
+        $termsAndConditions = TermsAndCondition::first();
 
         if (!$termsAndConditions) {
             return Helper::jsonResponse(false, 'Terms and Conditions not found.', 404, []);
@@ -46,12 +46,12 @@ class TermsAndConditionController extends Controller
         if (!$user) {
             return Helper::jsonErrorResponse('User not authenticated.', 401);
         }
-        $privacyPolicy = Privacypolicy::first();
+        $privacyPolicy = PrivacyPolicy::first();
         if (!$privacyPolicy) {
             return Helper::jsonResponse(false, 'Privacy Policy not found.', 404, []);
         }
         return Helper::jsonResponse(true, 'Privacy Policy retrieved successfully.', 200, [
-            'privacy' => strip_tags ($privacyPolicy->privacy_policy),
+            'privacy' => strip_tags ($privacyPolicy->privacy),
             'policy' => strip_tags( $privacyPolicy->policy),
         ]);
     } catch (Exception $e) {

@@ -74,7 +74,6 @@ class ReviewController extends Controller
             'review' => 'required|string|max:1000',
             'rating' => 'required|integer|between:0,5',
         ]);
-
         try {
             // Use updateOrCreate to create a new review or update the existing one
             $review = Review::updateOrCreate(
@@ -87,7 +86,6 @@ class ReviewController extends Controller
                     'rating' => $request->rating,
                 ]
             );
-
             // Return the success response with the review data
             return Helper::jsonResponse(true, 'Review submitted successfully', 200, $review);
         } catch (Exception $e) {

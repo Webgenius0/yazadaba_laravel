@@ -30,8 +30,6 @@ Route::group(['middleware' => 'guest:api'], static function () {
     //social login
     Route::post('/social-login', [SocialLoginController::class, 'SocialLogin']);
 
-    //password manager
-
 });
 
 Route::group(['middleware' => 'auth:api'], static function () {
@@ -44,8 +42,6 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::post('/teacher/update-profile', [UserController::class, 'TeacherUpdateProfile']);
     Route::delete('/teacher/delete-profile', [UserController::class, 'TeacherDeleteProfile']);
     Route::post('/change-password', [ResetPasswordController::class, 'teacherPasswordManager']);
-
-
 
     //course related route
     Route::controller(CourseController::class)->prefix('course')->group(function () {
@@ -84,6 +80,10 @@ Route::group(['middleware' => 'auth:api'], static function () {
         Route::post('/create/{id}', 'submitReview');
     });
 
+    //Withdraw Request
+    Route::controller(\App\Http\Controllers\API\Teacher\WithdrawRequestController::class)->group(function () {
+        Route::post('/withdraw-request', 'withdrawRequest');
+    });
     //Teacher Home Api
     Route::controller(HomeController::class)->prefix('home')->group(function () {
         Route::get('/', 'index');

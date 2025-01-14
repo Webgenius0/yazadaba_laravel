@@ -242,7 +242,6 @@
         function statusChange(id) {
             var url = '{{ route('admin.category.status', ':id') }}';
             url = url.replace(':id', id);
-
             $.ajax({
                 type: "GET",
                 url: url,

@@ -16,7 +16,7 @@
                                     <div class="col-12">
                                         <label class="form-lable">Terms</label>
 
-                                            <textarea class="form-control form-control-solid" name="terms" id="terms" value="">{{  $termsAndCondition->terms ?? 'terms'  }}</textarea>
+                                            <textarea class="form-control form-control-solid" name="terms" id="terms" value="">{{  $termsAndCondition->terms ?? ''  }}</textarea>
 
                                         @error('terms')
                                             <span class="invalid-feedback" role="alert">

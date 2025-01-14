@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->decimal('amount', 10, 2);
             $table->text('bank_info');
+            $table->decimal('remaining_balance', 10, 2)->default(0);
             $table->enum('status', ['pending', 'complete', 'rejected'])->default('pending');
             $table->text('rejection_reason')->nullable();
             $table->timestamps();
