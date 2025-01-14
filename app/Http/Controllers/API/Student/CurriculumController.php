@@ -90,6 +90,7 @@ class CurriculumController extends Controller
             $courseData = [
                 // Show the creator's details
                 'user_details' => [
+                    'id' => $creator->id,
                     'name' => $creator->name,
                     'email' => $creator->email,
                     'avatar' => $creator->avatar ?? 'null',
@@ -110,7 +111,6 @@ class CurriculumController extends Controller
                     'ratings' => $course->ratings->map(function ($rating) {
                         // Fetch user details (name and avatar) for each rating
                         $user = $rating->user;
-
                         $timeSinceCreated = $rating->created_at->diffForHumans();
                         return [
                             'user_id' => $rating->user_id,
@@ -123,9 +123,7 @@ class CurriculumController extends Controller
                     }),
                 ],
             ];
-
             return Helper::jsonResponse(true, 'Course Curriculum retrieved successfully.', 200, $courseData);
-
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return Helper::jsonErrorResponse('An error occurred: ' . $e->getMessage(), 500);
