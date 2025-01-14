@@ -42,7 +42,7 @@ class Course extends Model
 
     public function courseModules(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(CourseModule::class);
+        return $this->hasMany(CourseModule::class, 'course_id');
     }
 
     public function getCoverImageAttribute($value): string|null
@@ -59,5 +59,7 @@ class Course extends Model
         // Return only the path for web requests
         return $value;
     }
+
+    
 
 }

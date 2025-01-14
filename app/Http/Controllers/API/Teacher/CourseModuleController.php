@@ -42,6 +42,7 @@ class CourseModuleController extends Controller
 
     public function create(Request $request): \Illuminate\Http\JsonResponse
     {
+    
         $userId = Auth::user();
 
         // Validate incoming request data
@@ -73,7 +74,6 @@ class CourseModuleController extends Controller
         if ($request->hasFile('video_url')) {
             $videoField = 'video_url';
             $videoFilePath = $request->file($videoField)->getPathname();
-
             try {
                 // Upload video to Vimeo
                 $uri = Vimeo::upload($videoFilePath, [
@@ -123,6 +123,7 @@ class CourseModuleController extends Controller
                 // Store the Vimeo video URL
                 $videoUrl = "https://player.vimeo.com/video/" . trim($uri, '/videos');
             } catch (VimeoUploadException $e) {
+               
                 Log::error('Vimeo Upload Error: ' . $e->getMessage());
                return Helper::jsonErrorResponse('An error occurred: ' . $e->getMessage(), 500);
             } catch (Exception $e) {
