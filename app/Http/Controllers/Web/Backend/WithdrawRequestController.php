@@ -63,9 +63,7 @@ class WithdrawRequestController extends Controller
 
                         </div>
                     </div>
-                </div>';
-
-
+                    </div>';
                     })
                     ->addColumn('action', function ($data) {
                         return '<div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
@@ -95,7 +93,7 @@ class WithdrawRequestController extends Controller
         return view('backend.layout.withdraw_request.show', compact('user', 'courses', 'bank_info'));
     }
 
-    public function status(Request $request, $courseId): ?\Illuminate\Http\JsonResponse
+    public function status(Request $request, $courseId)
     {
         // Find the withdraw request by ID
         $data = WithdrawRequest::find($courseId);
@@ -104,7 +102,7 @@ class WithdrawRequestController extends Controller
         if (!$data) {
             return response()->json([
                 'success' => false,
-                'message' => 'Category not found',
+                'message' => 'Withdraw Request not found',
             ]);
         }
 

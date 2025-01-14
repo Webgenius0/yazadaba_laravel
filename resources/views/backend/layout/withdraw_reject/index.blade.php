@@ -135,8 +135,8 @@
                             searchable: true
                         },
                         {
-                            data: 'request_amount',
-                            name: 'request_amount',
+                            data: 'amount',
+                            name: 'amount',
                             orderable: true,
                             searchable: true
                         },

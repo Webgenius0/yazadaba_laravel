@@ -242,7 +242,7 @@
             url = url.replace(':id', id);
 
             $.ajax({
-                type: "GET",
+                type: "POST",
                 url: url,
                 data: {
                     _token: '{{ csrf_token() }}',
@@ -262,6 +262,7 @@
                 }
             });
         }
+
     </script>
 @endpush
 
