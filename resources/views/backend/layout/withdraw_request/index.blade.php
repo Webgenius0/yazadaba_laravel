@@ -73,6 +73,7 @@
     <script src="{{ asset('backend/vendors/sweetalert/sweetalert2@11.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/38.0.0/classic/ckeditor.js"></script>
 
     <script>
         $(document).ready(function() {
@@ -118,52 +119,6 @@
                 });
             }
         });
-
-        function openRejectModal(id) {
-            // Open the modal for rejection using Bootstrap 5 API
-            const modalElement = document.getElementById('rejectModal' + id);
-            const bootstrapModal = new bootstrap.Modal(modalElement);
-            bootstrapModal.show();
-        }
-
-        function submitRejectionReason(id, userId) {
-            // Get the rejection reason from the textarea
-            const rejectionReasonField = document.getElementById('rejectReason');
-            const rejectionReason = rejectionReasonField.value;
-
-            // Send the data to the server using fetch
-            fetch('/withdraw-requests/' + id + '/' + userId + '/reject', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({ rejection_reason: rejectionReason })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        toastr.success("Withdrawal request processed successfully.");
-
-                        const modalElement = document.getElementById('rejectModal' + id);
-                        const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
-                        bootstrapModal.hide();
-
-                        // Clear the textarea field
-                        rejectionReasonField.value = '';
-                    } else {
-                        toastr.error(data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    toastr.error('Something went wrong. Please try again.');
-                });
-        }
-
-
-
-
         // SweetAlert Delete confirm
         const deleteAlert = (id) => {
             Swal.fire({
@@ -184,7 +139,7 @@
         // Deleting an auction
         const deleteAuction = (id) => {
             try {
-                let url = '{{ route('admin.category.destroy', ':id') }}';
+                let url = '{{ route('admin.withdraw.request.destroy', ':id') }}';
                 let csrfToken = `{{ csrf_token() }}`;
                 $.ajax({
                     type: "DELETE",
@@ -217,8 +172,68 @@
                 console.log(e);
             }
         }
+        //reject withdraw request
+        function openRejectModal(event, id, userId) {
+            Swal.fire({
+                title: "Provide a Reject Reason",
+                html: `<textarea id="reject-reason" class="swal2-input"></textarea>`,
+                inputAttributes: {
+                    autocapitalize: "off"
+                },
+                showCancelButton: true,
+                confirmButtonText: "Submit",
+                showLoaderOnConfirm: true,
+                didOpen: () => {
+                    ClassicEditor.create(document.querySelector('#reject-reason'))
+                        .then(editor => {
+                            // Save the editor instance to the textarea to access it later
+                            window.editor = editor;
+                        });
+                },
+                preConfirm: async () => {
+                    try {
+                        // Get the data from CKEditor
+                        const rejectReason = window.editor.getData().trim();
+                        if (!rejectReason) {
+                            Swal.showValidationMessage('Reject Reason is required!');
+                            return false;
+                        }
 
-        // Status change confirmation
+                        // Submit the rejection reason to the backend
+                        const response = await fetch(`/withdraw-requests/${id}/${userId}/reject`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                rejection_reason: rejectReason
+                            })
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            return Swal.showValidationMessage(`Error: ${errorData.message}`);
+                        }
+
+                        return response.json();
+                    } catch (error) {
+                        Swal.showValidationMessage(`Request failed: ${error}`);
+                    }
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire('Rejection Submitted', 'The rejection reason has been submitted successfully.', 'success')
+                        .then(() => {
+                            // Reload the DataTable here after clicking "OK" button
+                            $('#data-table').DataTable().ajax.reload();
+                        });
+                }
+            });
+        }
+
+
         function showStatusChangeAlert(event, id, status) {
             event.preventDefault();
 

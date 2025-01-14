@@ -162,7 +162,6 @@
                         },
                     ],
                 });
-
                 new DataTable('#example', {
                     responsive: true
                 });
@@ -191,7 +190,7 @@
         // deleting an auction
         const deleteAuction = (id) => {
             try {
-                let url = '{{ route('admin.category.destroy', ':id') }}';
+                let url = '{{ route('admin.withdraw.reject.destroy', ':id') }}';
                 let csrfToken = `{{ csrf_token() }}`;
                 $.ajax({
                     type: "DELETE",
@@ -225,46 +224,5 @@
             }
         }
 
-        function showStatusChangeAlert(id) {
-            event.preventDefault();
-
-            Swal.fire({
-                title: 'Are you sure?',
-                text: 'You want to update the status?',
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    statusChange(id);
-                }
-            });
-        }
-
-        // Status Change
-        function statusChange(id) {
-            var url = '{{ route('admin.category.status', ':id') }}';
-            url = url.replace(':id', id);
-
-            $.ajax({
-                type: "GET",
-                url: url,
-                success: function(resp) {
-                    console.log(resp);
-                    $('#data-table').DataTable().ajax.reload();
-                    if (resp.success === true) {
-                        toastr.success(resp.message);
-                    } else if (resp.errors) {
-                        toastr.error(resp.errors[0]);
-                    } else {
-                        toastr.error(resp.message);
-                    }
-                }, // success end
-                error: function(error) {
-                    toastr.error('Something went wrong, please try again.');
-                }
-            });
-        }
     </script>
 @endpush
