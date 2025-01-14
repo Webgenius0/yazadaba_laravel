@@ -46,7 +46,7 @@
                                     </li>
                                     <li class="mb-2">
                                         <span class="h6">Phone:</span>
-                                        <span>{{$data->phone ?? 'N/A'}}</span>
+                                        <span>{{$user->phone ?? 'N/A'}}</span>
                                     </li>
                                 </ul>
                             </div>
@@ -54,26 +54,7 @@
                     </div>
                 </div>
                 <div class="col-xl-8 col-lg-7 order-0 order-md-1">
-                    <!-- Activity Timeline -->
-                    <div class="card mb-6">
-                        <h5 class="card-header d-flex justify-content-between align-items-center">
-                            <span>Reject Reason List</span>
-                            <button id="openModalBtn" class="btn btn-primary">Reject Reason</button>
-                        </h5>
-                        <div class="card-body pt-1">
-                            <ul class="timeline mb-0">
-                                <li class="timeline-item timeline-item-transparent">
-                                    <span class="timeline-point timeline-point-primary"></span>
-                                    <div class="timeline-event">
-                                        <div class="timeline-header mb-3">
-                                            <h6 class="mb-0">12 Invoices have been paid</h6>
-                                            <small class="text-muted">12 min ago</small>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+                  
                     <div class="card mb-6 mt-3">
                         <h5 class="card-header d-flex justify-content-between align-items-center">
                             <span>Account Information</span>
@@ -87,7 +68,7 @@
                                             <ul class="list-unstyled mb-6">
                                                 <li class="mb-2">
                                                     <span class="h6">Request Amount:</span>
-                                                    <span>{{$bank_info->request_amount ?? 'N/A'}}</span>
+                                                    <span>{{$bank_info->amount ?? 'N/A'}}</span>
                                                 </li>
                                                 <li class="mb-2">
                                                     <span class="h6">Bank Information:</span>

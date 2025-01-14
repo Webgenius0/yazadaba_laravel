@@ -50,24 +50,30 @@
                                     </li>
                                     <li class="mb-2">
                                         <span class="h6">Phone:</span>
-                                        <span>{{$data->phone ?? 'N/A'}}</span>
+                                        <span>{{$user->phone ?? 'N/A'}}</span>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                     <!-- Plan Card -->
-                    <div class="card mb-6 mt-3 border border-2 border-primary rounded primary-shadow">
+                    <!-- <div class="card mb-6 mt-3 border border-2 border-primary rounded primary-shadow">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start">
                                 <span class="badge bg-label-primary">Reject Reason</span>
                             </div>
                             <ul class="list-unstyled mt-3 g-2 my-6">
-                                <li class="mb-2 d-flex align-items-center"><i class="bx bxs-circle bx-6px text-secondary me-2"></i><span>Account Number Invalid</span></li>
+                                <li class="mb-2 d-flex align-items-center"><i class="bx bxs-circle bx-6px text-secondary me-2"></i><span>Reson:</span>
+                                <span>{{strip_tags($bank_info->rejection_reason) ?? 'N/A'}}</span>
+                                </li>
                                 <li class="mb-2 d-flex align-items-center"><i class="bx bxs-circle bx-6px text-secondary me-2"></i><span>Country Name is invalid</span></li>
                             </ul>
                         </div>
-                    </div>
+                    </div> -->
+
+                   
+                  
+                
                     <!-- /Plan Card -->
                 </div>
                 <div class="col-xl-8 col-lg-7 order-0 order-md-1">
@@ -78,7 +84,7 @@
                             <ul class="list-unstyled mb-6">
                                 <li class="mb-2">
                                     <span class="h6">Request Amount:</span>
-                                    <span>{{$bank_info->request_amount ?? 'N/A'}}</span>
+                                    <span>{{$bank_info->amount ?? 'N/A'}}</span>
                                 </li>
                                 <li class="mb-2">
                                     <span class="h6">Bank Information:</span>
@@ -87,7 +93,23 @@
                             </ul>
                         </div>
                     </div>
-                    <!-- Activity Timeline -->
+                    <!-- Reject Reason -->
+                    <div class="card mb-6 mt-3 border border-2 border-primary rounded primary-shadow">
+                        <h5 class="card-header">Reject Reason</h5>
+                        <div class="card-body pt-1">
+                            <ul class="list-unstyled mb-6">
+                                <li class="mb-2">
+                                    <span class="h5 badge bg-label-primary ">Reason:</span>
+                                    <span>{{strip_tags($bank_info->rejection_reason) ?? 'N/A'}}</span>
+                                </li>
+                                <li class="mb-2 ">
+                                    <span class="h5 badge bg-label-primary">Bank Information:</span>
+                                    <span>{{$bank_info->bank_info ?? 'N/A'}}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                   
                 </div>
             </div>
 

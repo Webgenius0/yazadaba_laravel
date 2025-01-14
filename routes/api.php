@@ -45,8 +45,6 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::delete('/teacher/delete-profile', [UserController::class, 'TeacherDeleteProfile']);
     Route::post('/change-password', [ResetPasswordController::class, 'teacherPasswordManager']);
 
-
-
     //course related route
     Route::controller(CourseController::class)->prefix('course')->group(function () {
         Route::get('/', 'view');
