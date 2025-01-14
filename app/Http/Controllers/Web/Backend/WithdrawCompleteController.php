@@ -62,7 +62,8 @@ class WithdrawCompleteController extends Controller
     public function show($id){
         $user = User::find($id);
         $courses = Course::where('user_id', $id)->get();
-     return view('backend.layout.withdraw_complete.show',compact('user','courses'));
+        $bank_info = WithdrawRequest::find($id);
+     return view('backend.layout.withdraw_complete.show',compact('user','courses','bank_info'));
     }
 
     public function destroy($id){
