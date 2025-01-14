@@ -182,16 +182,13 @@ class CourseController extends Controller
     {
         $user = Auth::user();
         $course = Course::find($id);
-
         if (!$course) {
             return Helper::jsonErrorResponse('Course not found.', 404);
         }
-
         // Find any existing request from the user for the same course
         $existingRequest = PublishRequest::where('user_id', $user->id)
             ->where('course_id', $id)
             ->first();
-
         // Determine the action based on the current course status
         $action = $course->status == 'active' ? 'unpublish' : 'publish';
 
@@ -199,7 +196,6 @@ class CourseController extends Controller
         if ($existingRequest) {
             return Helper::jsonErrorResponse(ucfirst($action) . ' request is already pending.', 400);
         }
-
         // Create the new publish/unpublish request with appropriate status
         $publishRequest = PublishRequest::create([
             'user_id' => $user->id,
@@ -227,19 +223,16 @@ class CourseController extends Controller
     {
         try {
             $user = Auth::user();
-
             if (!$user || $user->role != 'teacher') {
-                return response()->json(['error' => 'Unauthorized'], 403);
+               return Helper::jsonErrorResponse('User not authenticated.', 401);
             }
 
             // Step 1: Fetch all courses for the specific teacher (user)
             $courses = Course::where('user_id', $user->id)->get();
-
             // Step 2: Loop through each course and count the number of students enrolled
             $responseData = $courses->map(function ($course) {
                 // Count the number of students enrolled in each course
                 $enrollsCount = CourseEnroll::where('course_id', $course->id)->count();
-
                 return [
 
                     'course_id' => $course->id,
@@ -250,11 +243,10 @@ class CourseController extends Controller
                     'status' => $course->status
                 ];
             });
-
             // Step 3: Return a combined response with all course data
-            return Helper::jsonResponse(true, 'Course Data fetched successfully', 200, $responseData);
+            return Helper::jsonResponse(true, 'My Resource Data fetched successfully', 200, $responseData);
         } catch (Exception $e) {
-            // Log::error($e->getMessage());
+             Log::error($e->getMessage());
             return Helper::jsonErrorResponse($e->getMessage(), 500);
         }
     }

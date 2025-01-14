@@ -10,6 +10,7 @@ use App\Helpers\Helper;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TermsandCondition;
 use App\Models\PrivacyPolicy;
+use Throwable;
 
 
 class TermsAndConditionController extends Controller
@@ -17,7 +18,7 @@ class TermsAndConditionController extends Controller
     public function getTermsAndConditions(): \Illuminate\Http\JsonResponse
 {
     try {
-        
+
         $user = Auth::user();
 
         if (!$user) {
@@ -25,7 +26,7 @@ class TermsAndConditionController extends Controller
         }
 
         $termsAndConditions = TermsandCondition::first();
-      
+
         if (!$termsAndConditions) {
             return Helper::jsonResponse(false, 'Terms and Conditions not found.', 404, []);
         }
@@ -33,44 +34,28 @@ class TermsAndConditionController extends Controller
             'terms' => strip_tags($termsAndConditions->terms),
             'conditions' => strip_tags($termsAndConditions->conditions),
         ]);
-    } catch (\Throwable $th) {
-  
+    } catch (Throwable $th) {
         Log::error($th->getMessage());
-
         return Helper::jsonResponse(false, 'Something went wrong.', 500);
     }
 }
-
-
- 
-
     public function getPrivacyPolicy(): \Illuminate\Http\JsonResponse
 {
     try {
-        
         $user = Auth::user();
-
-       
         if (!$user) {
             return Helper::jsonErrorResponse('User not authenticated.', 401);
         }
-
         $privacyPolicy = Privacypolicy::first();
-
-     
         if (!$privacyPolicy) {
             return Helper::jsonResponse(false, 'Privacy Policy not found.', 404, []);
         }
-
- 
         return Helper::jsonResponse(true, 'Privacy Policy retrieved successfully.', 200, [
-            'privacy_policy' => strip_tags ($privacyPolicy->privacy_policy),
+            'privacy' => strip_tags ($privacyPolicy->privacy_policy),
             'policy' => strip_tags( $privacyPolicy->policy),
         ]);
     } catch (Exception $e) {
- 
         Log::error($e->getMessage());
-
         return Helper::jsonResponse(false, 'Something went wrong.', 500);
     }
 }

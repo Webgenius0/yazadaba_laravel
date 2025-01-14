@@ -4,15 +4,15 @@ namespace App\Http\Controllers\Web\Backend;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\TermsAndCondition;
-use App\Models\PrivacyPolicy;
+use App\Models\TermsandCondition;
+use App\Models\Privacypolicy;
 use Exception;
 
 class TermsAndConditionController extends Controller
 {
     public function termsandCondition()
     {
-        $termsAndCondition = TermsAndCondition::first();
+        $termsAndCondition = TermsandCondition::first();
         return view('backend.layout.terms&condition.termsandCondition', compact('termsAndCondition'));
     }
 
@@ -41,7 +41,7 @@ class TermsAndConditionController extends Controller
 
     public function privacyPolicy()
     {
-        $privecyPolicy = PrivacyPolicy::first();
+        $privecyPolicy = Privacypolicy::first();
         return view('backend.layout.terms&condition.privacypolicy', compact('privecyPolicy'));
     }
     public function updatePrivecyPolicy(Request $request): ?\Illuminate\Http\RedirectResponse
@@ -51,7 +51,7 @@ class TermsAndConditionController extends Controller
             'policy' => 'nullable|string',
         ]);
 
-        $privecyPolicy = PrivacyPolicy::firstOrNew();
+        $privecyPolicy = Privacypolicy::firstOrNew();
         $privecyPolicy->privacy_policy = $request->privacy_policy;
         $privecyPolicy->policy = $request->policy;
         try {

@@ -47,8 +47,6 @@ Route::group(['middleware' => 'auth:api'], static function () {
 
     Route::post('/change-password', [ResetPasswordController::class, 'teacherPasswordManager']);
 
-
-
     //course related route
     Route::controller(CourseController::class)->prefix('course')->group(function () {
         Route::get('/', 'view');
@@ -58,7 +56,7 @@ Route::group(['middleware' => 'auth:api'], static function () {
         Route::get('/get/categories', 'getCategories');
         Route::get('/get/grade-level', 'getGradeLevel');
         Route::post('/publish-request/{id}', 'publishRequest');
-        Route::get('/get/enrollcourse', 'myResource');
+        Route::get('/enroll/course', 'myResource');
     });
 
     Route::controller(CourseModuleController::class)->prefix('course-module')->group(function () {
