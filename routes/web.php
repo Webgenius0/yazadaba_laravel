@@ -68,7 +68,7 @@ Route::controller(WithdrawRequestController::class)->prefix('admin/withdraw/requ
 Route::post('/withdraw-requests/{id}/{userId}/reject', [WithdrawRequestController::class, 'submitRejectionReason']);
 
 // Withdraw Request all route end
-// Withdraw Request all route start
+
 
 Route::controller(WithdrawCompleteController::class)->prefix('admin/withdraw/complete')->name('admin.withdraw.complete.')->group(function () {
     Route::get('/', 'index')->name('index');
@@ -89,7 +89,7 @@ Route::controller(WithdrawRejectController::class)->prefix('admin/withdraw/rejec
 
 //Terms && condition
 Route::controller(TermsAndConditionController::class)->prefix('admin/terms-and-condition')->name('admin.terms-and-condition.')->group(function () {
-    Route::get('/', 'index')->name('index');
+    Route::get('/', 'termsandCondition')->name('index');
     Route::post('/terms-and-condition', 'update')->name('update');
 
     Route::get('/privacy-policy', 'privacyPolicy')->name('privacyPolicy');

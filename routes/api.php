@@ -142,4 +142,6 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::post('/withdraw-request', [\App\Http\Controllers\API\Teacher\WithdrawRequestController::class, 'withdrawRequest']);
 
     Route::post('/terms-condition', [TermsAndConditionController::class, 'updateOrCreate'])->name('termsandCondition');
+    Route::get('/terms-condition', [TermsAndConditionController::class, 'getTermsAndConditions'])->name('termsandCondition');
+    Route::get('/privacy-policy', [TermsAndConditionController::class, 'getPrivacyPolicy'])->name('privacyPolicy');
 });

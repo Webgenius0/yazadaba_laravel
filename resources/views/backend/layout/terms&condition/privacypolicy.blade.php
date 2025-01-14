@@ -1,6 +1,6 @@
 @extends('backend.app')
 
-@section('title', 'Privacy and policy')
+@section('title', 'Privacy Policy')
 
 @section('content')
     <div class="content-wrapper">
@@ -8,16 +8,17 @@
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Privacy and policy</h4>
+                        <h4 class="card-title">Privacy Policy</h4>
 
                         <div class="mt-4">
-                            <form id="termsForm" class="forms-sample" method="POST" action="{{route('admin.terms-and-condition.updatePrivecyPolicy')}}" >
+                            <form id="termsForm" class="forms-sample" method="POST"
+                                action="{{ route('admin.terms-and-condition.updatePrivecyPolicy') }}">
                                 @csrf
                                 <div class="form-group row mb-3">
                                     <div class="col-12">
-                                        <label class="form-lable">Privacy</label>
+                                        <label class="form-lable">Privecy</label>
 
-                                            <textarea class="form-control form-control-solid" name="privacy_policy" id="privacy" value="">{{  $privecyPolicy->privacy_policy ?? ''  }}</textarea>
+                                        <textarea class="form-control form-control-solid" name="privacy_policy" id="privacy" value="">{{ $privecyPolicy->privacy_policy ?? 'privacy' }}</textarea>
 
                                         @error('privacy')
                                             <span class="invalid-feedback" role="alert">
@@ -31,7 +32,7 @@
                                     <div class="col-12">
                                         <label class="form-lable">Policy</label>
 
-                                            <textarea class="form-control form-control-solid" name="policy" id="policy" value="">{{  $privecyPolicy->policy ?? ''  }}</textarea>
+                                        <textarea class="form-control form-control-solid" name="policy" id="policy" value="">{{ $privecyPolicy->policy ?? 'policy' }}</textarea>
 
                                         @error('policy')
                                             <span class="invalid-feedback" role="alert">
@@ -53,20 +54,18 @@
 @endsection
 
 @push('script')
-     <script src="https://cdn.ckeditor.com/ckeditor5/38.0.0/classic/ckeditor.js"></script>
-<script>
-
-    ClassicEditor
+    <script src="https://cdn.ckeditor.com/ckeditor5/38.0.0/classic/ckeditor.js"></script>
+    <script>
+        ClassicEditor
             .create(document.querySelector('#privacy'))
             .catch(error => {
                 console.error(error);
             });
 
- ClassicEditor
+        ClassicEditor
             .create(document.querySelector('#policy'))
             .catch(error => {
                 console.error(error);
             });
-
-</script>
+    </script>
 @endpush
