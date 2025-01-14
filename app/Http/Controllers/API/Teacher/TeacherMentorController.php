@@ -29,15 +29,24 @@ class TeacherMentorController extends Controller
 
             $totalCourses = Course::where('user_id', $user->id)->count();
 
-            $totalReviews = (float)round(Review::join('courses', 'reviews.course_id', '=', 'courses.id')
-                ->where('courses.user_id', $user->id)
-                ->avg('reviews.rating') ?? 0.0, 1);
+            $courses = Course::where('user_id', $user->id)->where('status', 'active')->pluck('id');
+            $totalStudents = CourseEnroll::whereIn('course_id', $courses)
+                ->where('status', 'completed')
+                ->count();
 
-            $totalStudents = 0;
+            $reviews = Review::whereIn('course_id', $courses)
+                ->with(['user:id,name,avatar', 'course:id,name'])
+                ->get();
+
+            $totalReviews = $reviews->count();
+
+            $averageRating = $totalReviews > 0
+                ? round($reviews->avg('rating'), 1)
+                : 0.0;
 
             $courses = Course::with(['category', 'gradeLevel'])
                 ->where('user_id', $user->id)
-                ->where('status', 'inactive')
+                ->where('status', 'active')
                 ->get()
                 ->map(function ($course) {
                     // Sum the module video durations for the course
@@ -52,7 +61,9 @@ class TeacherMentorController extends Controller
                     } else {
                         $formattedDuration = floor($totalDurationInSeconds / 3600) . " hours";
                     }
+
                     $course->course_duration = $formattedDuration;
+
                     // Calculate the total ratings and average rating for the course
                     $course->total_ratings = $course->reviews()->count();
                     $course->average_rating = (float)round($course->reviews()->avg('rating') ?? 0.0, 1);
@@ -62,8 +73,9 @@ class TeacherMentorController extends Controller
                     $course->grade_level_name = $course->gradeLevel->name ?? null;
 
                     // Fetch the reviews and ratings for the course
-                    $course->ratings = $course->reviews()->select('user_id', 'review', 'rating', 'created_at')->get();
-
+                    $course->ratings = $course->reviews()
+                        ->select('user_id', 'review', 'rating', 'created_at')
+                        ->get();
                     return $course;
                 });
 
@@ -73,6 +85,7 @@ class TeacherMentorController extends Controller
                 'total_courses' => $totalCourses,
                 'total_reviews' => $totalReviews,
                 'total_students' => $totalStudents,
+                'average_ratting' => $averageRating,
                 'user_details' => [
                     'name' => $user->name,
                     'email' => $user->email,
@@ -102,6 +115,15 @@ class TeacherMentorController extends Controller
                                 'created_at' => $timeSinceCreated,
                             ];
                         }),
+                    ];
+                }),
+                'reviews' => $reviews->map(function ($rating) {
+                    return [
+                        'reviewer_id' => $rating->user->id,
+                        'avatar' => $rating->user->avatar,
+                        'name' => $rating->user->name,
+                        'rating' => (float)$rating->rating,
+                        'review' => $rating->review,
                     ];
                 }),
             ];

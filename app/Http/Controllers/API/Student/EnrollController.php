@@ -19,9 +19,7 @@ class EnrollController extends Controller
         $request->validate([
             'course_id' => 'required|exists:courses,id',
         ]);
-
         $user = auth()->user();
-
         // Check if the user is authenticated
         if (!$user) {
             return Helper::jsonErrorResponse('User not authenticated.', 401);
@@ -31,9 +29,8 @@ class EnrollController extends Controller
         if ($user->role !== 'student') {
             return Helper::jsonResponse(false, 'Access denied. User is not a student.', 403, []);
         }
-
         // Fetch the course
-        $course = Course::find($request->course_id);
+        $course = Course::where('status','active')->find($request->course_id);
 
         if (!$course) {
             return Helper::jsonErrorResponse('Course not found.', 404);

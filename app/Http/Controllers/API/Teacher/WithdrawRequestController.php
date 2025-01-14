@@ -38,8 +38,7 @@ class WithdrawRequestController extends Controller
         }
 
         // Get all courses created by the authenticated user
-        $courses = Course::where('user_id', $user->id)->pluck('id');
-
+        $courses = Course::where('user_id', $user->id)->where('status','active')->pluck('id');
         // Calculate total enrolled amount for the user's courses
         $totalEnrolledAmount = CourseEnroll::whereIn('course_id', $courses)->sum('amount');
 

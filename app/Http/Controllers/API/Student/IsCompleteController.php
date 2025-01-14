@@ -83,7 +83,6 @@ class IsCompleteController extends Controller
             'course_id' => $request->course_id,
             'review' => $request->review,
             'ratting' => $request->ratting,
-
         ]);
         return Helper::jsonResponse(true, 'Review marked as complete successfully.', 200, $review);
     }

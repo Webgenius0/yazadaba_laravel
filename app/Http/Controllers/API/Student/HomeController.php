@@ -44,7 +44,7 @@ class HomeController extends Controller
                 }])
                 ->get();
 
-            $Courses = Course::withCount('reviews')->with('user')
+            $Courses = Course::withCount('reviews')->with('user')->where('status','active')
                 ->withAvg('reviews', 'rating')
                 ->get()
                 ->map(function ($course) {
@@ -181,7 +181,7 @@ class HomeController extends Controller
             return Helper::jsonErrorResponse('Category does not exist.', 404);
         }
         // Retrieve courses for the teacher and category
-        $courses = Course::where('category_id', $request->category_id)->with('user')
+        $courses = Course::where('category_id', $request->category_id)->where('status','active')->with('user')
             ->withCount('reviews')
             ->withAvg('reviews', 'rating')
             ->get()
@@ -253,7 +253,7 @@ class HomeController extends Controller
             return Helper::jsonErrorResponse('Search query cannot be empty.', 400);
         }
 
-        $courses = Course::where('name', 'like', '%' . $searchQuery . '%')
+        $courses = Course::where('name', 'like', '%' . $searchQuery . '%')->where('status','active')
             ->withCount('reviews')->with('user')
             ->withAvg('reviews', 'rating')
             ->get()

@@ -40,7 +40,7 @@ class HomeController extends Controller
         }
 
         // Fetch courses belonging to the authenticated user (teacher)
-        $Courses = Course::where('user_id', $user->id)
+        $Courses = Course::where('user_id', $user->id)->where('status', 'active')
             ->get()
             ->map(function ($course) {
                 // Count the number of reviews for the current course
@@ -112,7 +112,7 @@ class HomeController extends Controller
         }
 
         // Retrieve courses for the teacher and category
-        $courses = Course::where('user_id', $user->id)
+        $courses = Course::where('user_id', $user->id)->where('status','active')
             ->where('category_id', $request->category_id)
             ->withCount('reviews')
             ->withAvg('reviews', 'rating')
@@ -174,7 +174,7 @@ class HomeController extends Controller
             return Helper::jsonErrorResponse('Search query cannot be empty.', 400);
         }
 
-        $courses = Course::where('user_id', $user->id)
+        $courses = Course::where('user_id', $user->id)->where('status','active')
             ->where('name', 'like', '%' . $searchQuery . '%')
             ->withCount('reviews')
             ->withAvg('reviews', 'rating')
@@ -221,14 +221,13 @@ class HomeController extends Controller
             if (!$user || $user->role !== 'teacher') {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
-
             // Get total statistics for the authenticated teacher's courses
-            $courses = Course::where('user_id', $user->id)->pluck('id');
+            $courses = Course::where('user_id', $user->id)->where('status','active')->pluck('id');
             $totalCourses = $courses->count();
             $totalReviews = Review::where('user_id', $user->id)->count();
-            $totalResourceValue = Course::where('user_id', $user->id)->sum('price');
-            $totalEarning = CourseEnroll::whereIn('course_id', $courses)->sum('amount');
-            $totalStudentEnroll = CourseEnroll::whereIn('course_id', $courses)->count();
+            $totalResourceValue = Course::where('user_id', $user->id)->where('status','active')->sum('price');
+            $totalEarning = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')->sum('amount');
+            $totalStudentEnroll = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')->count();
 
             // Get the year and month from the request, defaulting to current year
             $year = $request->input('year', Carbon::now()->year);

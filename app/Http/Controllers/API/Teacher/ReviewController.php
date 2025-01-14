@@ -22,7 +22,7 @@ class ReviewController extends Controller
             if (!$user) {
                 return Helper::jsonErrorResponse('User not authenticated.', 401);
             }
-            $getUserCourse = Course::where('user_id', auth()->id())->pluck('id');
+            $getUserCourse = Course::where('user_id', auth()->id())->where('status','active')->pluck('id');
 
             $reviews = Review::whereIn('course_id', $getUserCourse)
                 ->with(['user:id,name,avatar', 'course:id,name'])

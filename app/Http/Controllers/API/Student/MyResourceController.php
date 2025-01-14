@@ -19,11 +19,9 @@ class MyResourceController extends Controller
     {
         try {
             $user = Auth::user();
-
             if (!$user) {
                 return Helper::jsonErrorResponse('User not authenticated.', 401);
             }
-
             if ($user->role !== 'student') {
                 return Helper::jsonResponse(false, 'Access denied. User is not a student.', 403, []);
             }
@@ -35,7 +33,6 @@ class MyResourceController extends Controller
                         ->with('courseModules');
                 }])
                 ->get();
-
             $ongoingCourses = [];
             $completedCourses = [];
 

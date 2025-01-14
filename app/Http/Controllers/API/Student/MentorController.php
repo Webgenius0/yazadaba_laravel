@@ -32,11 +32,11 @@ class MentorController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'User not found.',
-                    'status_code' => 404
-                ]);
+                    'code' => 404
+                ],404);
             }
             // Fetch total courses for this user
-            $totalCourses = Course::where('user_id', $user->id)->count();
+            $totalCourses = Course::where('user_id', $user->id)->where('status','active')->count();
             // Calculate average rating for this user's courses
             $totalReviews = (float)round(Review::join('courses', 'reviews.course_id', '=', 'courses.id')
                 ->where('courses.user_id', $user->id)
@@ -48,7 +48,7 @@ class MentorController extends Controller
             // Fetch courses for this user
             $courses = Course::with(['category', 'gradeLevel'])
                 ->where('user_id', $user->id)
-                ->where('status', 'inactive')
+                ->where('status', 'active')
                 ->get()
                 ->map(function ($course) {
                     // Sum the module video durations for the course

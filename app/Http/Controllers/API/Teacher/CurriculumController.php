@@ -27,7 +27,7 @@ class CurriculumController extends Controller
 
             $course = Course::with(['courseModules', 'category', 'gradeLevel'])
                 ->where('user_id', $user->id)
-                ->where('status', 'inactive')
+                ->where('status', 'active')
                 ->find($curriculum);
 
             if (!$course) {
@@ -94,6 +94,7 @@ class CurriculumController extends Controller
 
             $courseData = [
                 'user_details' => [
+                    'id'=>$user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'avatar' => $user->avatar,

@@ -25,12 +25,11 @@ class ResourceValueController extends Controller
             if (!$user || $user->role !== 'teacher') {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
-
             // Get total statistics for the authenticated teacher's courses
-            $courses = Course::where('user_id', $user->id)->pluck('id');
-            $totalResourceValue = Course::where('user_id', $user->id)->sum('price');
-            $averageResourceValue = Course::where('user_id', $user->id)->count()
-                ? number_format(Course::where('user_id', $user->id)->sum('price') / Course::where('user_id', $user->id)->count(), 2)
+            $courses = Course::where('user_id', $user->id)->where('status','active')->pluck('id');
+            $totalResourceValue = Course::where('user_id', $user->id)->where('status','active')->sum('price');
+            $averageResourceValue = Course::where('user_id', $user->id)->where('status','active')->count()
+                ? number_format(Course::where('user_id', $user->id)->where('status','active')->sum('price') / Course::where('user_id', $user->id)->where('status','active')->count(), 2)
                 : 0.00;
             $totalResourceSold = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')->count();
             $totalResourceSoldValue = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')->sum('amount');
@@ -59,7 +58,6 @@ class ResourceValueController extends Controller
                 'newEnrollResources' => $newEnrollResources,
                 'topEnrollAmount' => $topEnrollAmount,
                 'topEnrollAmountValue' => $topEnrollAmount,
-
             ];
             return Helper::jsonResponse(true ,'Resource Value Fetch successfully',200,$data);
         }catch (Exception $e){
@@ -77,7 +75,7 @@ class ResourceValueController extends Controller
         }
 
         // Get courses of the user
-        $courses = Course::where('user_id', auth()->id())->pluck('id');
+        $courses = Course::where('user_id', auth()->id())->where('status','active')->pluck('id');
 
         // Get selected year and month from the request
         $selectedYear = $request->input('year', Carbon::now()->year);
@@ -132,7 +130,6 @@ class ResourceValueController extends Controller
                 $result['revenue'][] = ['year' => $selectedYear, 'month' => $monthName, 'amount' => $adjustedAmount];
             }
         }
-
         return response()->json([
             'status' => true,
             'message' => $selectedMonth !== null ? 'Monthly Revenue Breakdown retrieved successfully' : 'Yearly Revenue Breakdown retrieved successfully',
@@ -150,7 +147,7 @@ class ResourceValueController extends Controller
         }
 
         // Get courses of the user
-        $courses = Course::where('user_id', auth()->id())->pluck('id');
+        $courses = Course::where('user_id', auth()->id())->where('status','active')->pluck('id');
 
         // Get selected year and month from the request
         $selectedYear = $request->input('year', Carbon::now()->year);

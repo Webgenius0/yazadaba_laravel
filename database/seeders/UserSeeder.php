@@ -4,23 +4,22 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Faker\Factory as Faker;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        $faker = Faker::create();
+
         // Create an Admin User
         User::create([
             'name' => 'Admin User',
             'fname' => 'Admin',
             'lname' => 'User',
-            'email' => 'admin@gmail.com',
+            'email' => 'admin@admin.com',
             'password' => Hash::make('12345678'),
             'is_otp_verified' => false,
             'role' => 'admin',
@@ -29,167 +28,45 @@ class UserSeeder extends Seeder
             'phone' => '1234567890',
             'avatar' => null,
             'email_verified_at' => Carbon::now(),
-            'dob' => '25/02/2024',
+            'dob' => '1980-01-01',
         ]);
 
-        // Create a Teacher User
-        User::create([
-            'name' => 'Teacher1 User',
-            'fname' => 'Teacher1',
-            'lname' => 'User',
-            'email' => 'teacher1@gmail.com',
-            'password' => Hash::make('12345678'),
-            'is_otp_verified' => false,
-            'role' => 'teacher',
-            'gender' => 'female',
-            'bio' => 'A passionate teacher',
-            'phone' => '0987654321',
-            'avatar' => null,
-            'email_verified_at' => Carbon::now(),
-            'dob' => '25/02/2024',
+        // Create Teacher Users
+        for ($i = 1; $i <= 5; $i++) {
+            User::create([
+                'name' => $faker->name,
+                'fname' => $faker->firstName,
+                'lname' => $faker->lastName,
+                'email' => "teacher{$i}@gmail.com",
+                'password' => Hash::make('12345678'),
+                'is_otp_verified' => false,
+                'role' => 'teacher',
+                'gender' => $faker->randomElement(['male', 'female']),
+                'bio' => 'A passionate teacher',
+                'phone' => $faker->unique()->phoneNumber,
+                'avatar' => null,
+                'email_verified_at' => Carbon::now(),
+                'dob' => $faker->date('Y-m-d', '1985-12-31'),
+            ]);
+        }
 
-        ]); // Create a Teacher User
-        User::create([
-            'name' => 'Teacher User',
-            'fname' => 'Teacher',
-            'lname' => 'User',
-            'email' => 'teacher2@gmail.com',
-            'password' => Hash::make('12345678'),
-            'is_otp_verified' => false,
-            'role' => 'teacher',
-            'gender' => 'female',
-            'bio' => 'A passionate teacher',
-            'phone' => '0987654321',
-            'avatar' => null,
-            'email_verified_at' => Carbon::now(),
-            'dob' => '25/02/2024',
-
-        ]); // Create a Teacher User
-        User::create([
-            'name' => 'Teacher User',
-            'fname' => 'Teacher',
-            'lname' => 'User',
-            'email' => 'teacher3@gmail.com',
-            'password' => Hash::make('12345678'),
-            'is_otp_verified' => false,
-            'role' => 'teacher',
-            'gender' => 'female',
-            'bio' => 'A passionate teacher',
-            'phone' => '0987654321',
-            'avatar' => null,
-            'email_verified_at' => Carbon::now(),
-            'dob' => '25/02/2024',
-
-        ]); // Create a Teacher User
-        User::create([
-            'name' => 'Teacher User',
-            'fname' => 'Teacher',
-            'lname' => 'User',
-            'email' => 'teacher4@gmail.com',
-            'password' => Hash::make('12345678'),
-            'is_otp_verified' => false,
-            'role' => 'teacher',
-            'gender' => 'female',
-            'bio' => 'A passionate teacher',
-            'phone' => '0987654321',
-            'avatar' => null,
-            'email_verified_at' => Carbon::now(),
-            'dob' => '25/02/2024',
-
-        ]); // Create a Teacher User
-        User::create([
-            'name' => 'Teacher User',
-            'fname' => 'Teacher',
-            'lname' => 'User',
-            'email' => 'teacher5@gmail.com',
-            'password' => Hash::make('12345678'),
-            'is_otp_verified' => false,
-            'role' => 'teacher',
-            'gender' => 'female',
-            'bio' => 'A passionate teacher',
-            'phone' => '0987654321',
-            'avatar' => null,
-            'email_verified_at' => Carbon::now(),
-            'dob' => '25/02/2024',
-
-        ]);
-
-        // Create a Student User
-        User::create([
-            'name' => 'Student User',
-            'fname' => 'Student',
-            'lname' => 'User',
-            'email' => 'student1@gmail.com',
-            'password' => Hash::make('12345678'),
-            'is_otp_verified' => false,
-            'role' => 'student',
-            'gender' => 'male',
-            'bio' => 'A dedicated student',
-            'phone' => '1122334455',
-            'avatar' => null,
-            'email_verified_at' => Carbon::now(),
-            'dob' => '25/02/2024',
-
-        ]); User::create([
-            'name' => 'Student User',
-            'fname' => 'Student',
-            'lname' => 'User',
-            'email' => 'student2@gmail.com',
-            'password' => Hash::make('12345678'),
-            'is_otp_verified' => false,
-            'role' => 'student',
-            'gender' => 'male',
-            'bio' => 'A dedicated student',
-            'phone' => '1122334455',
-            'avatar' => null,
-            'email_verified_at' => Carbon::now(),
-            'dob' => '25/02/2024',
-
-        ]); User::create([
-            'name' => 'Student User',
-            'fname' => 'Student',
-            'lname' => 'User',
-            'email' => 'student3@gmail.com',
-            'password' => Hash::make('12345678'),
-            'is_otp_verified' => false,
-            'role' => 'student',
-            'gender' => 'male',
-            'bio' => 'A dedicated student',
-            'phone' => '1122334455',
-            'avatar' => null,
-            'email_verified_at' => Carbon::now(),
-            'dob' => '25/02/2024',
-
-        ]); User::create([
-            'name' => 'Student User',
-            'fname' => 'Student',
-            'lname' => 'User',
-            'email' => 'student4@gmail.com',
-            'password' => Hash::make('12345678'),
-            'is_otp_verified' => false,
-            'role' => 'student',
-            'gender' => 'male',
-            'bio' => 'A dedicated student',
-            'phone' => '1122334455',
-            'avatar' => null,
-            'email_verified_at' => Carbon::now(),
-            'dob' => '25/02/2024',
-
-        ]); User::create([
-            'name' => 'Student User',
-            'fname' => 'Student',
-            'lname' => 'User',
-            'email' => 'student5@gmail.com',
-            'password' => Hash::make('12345678'),
-            'is_otp_verified' => false,
-            'role' => 'student',
-            'gender' => 'male',
-            'bio' => 'A dedicated student',
-            'phone' => '1122334455',
-            'avatar' => null,
-            'email_verified_at' => Carbon::now(),
-            'dob' => '25/02/2024',
-
-        ]);
+        // Create Student Users
+        for ($i = 1; $i <= 5; $i++) {
+            User::create([
+                'name' => $faker->name,
+                'fname' => $faker->firstName,
+                'lname' => $faker->lastName,
+                'email' => "student{$i}@gmail.com",
+                'password' => Hash::make('12345678'),
+                'is_otp_verified' => false,
+                'role' => 'student',
+                'gender' => $faker->randomElement(['male', 'female']),
+                'bio' => 'A dedicated student',
+                'phone' => $faker->unique()->phoneNumber,
+                'avatar' => null,
+                'email_verified_at' => Carbon::now(),
+                'dob' => $faker->date('Y-m-d', '2005-12-31'),
+            ]);
+        }
     }
 }
