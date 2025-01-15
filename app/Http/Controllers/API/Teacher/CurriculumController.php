@@ -132,5 +132,4 @@ class CurriculumController extends Controller
             return Helper::jsonErrorResponse('An error occurred: ' . $e->getMessage(), 500);
         }
     }
-
 }

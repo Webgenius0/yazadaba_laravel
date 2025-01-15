@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TeacherMentorController extends Controller
 {
@@ -28,7 +29,6 @@ class TeacherMentorController extends Controller
             }
 
             $totalCourses = Course::where('user_id', $user->id)->count();
-
             $courses = Course::where('user_id', $user->id)->where('status', 'active')->pluck('id');
             $totalStudents = CourseEnroll::whereIn('course_id', $courses)
                 ->where('status', 'completed')
@@ -131,6 +131,7 @@ class TeacherMentorController extends Controller
             return Helper::jsonResponse(true, 'Data Fetch Successfully', 200, $data);
 
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return Helper::jsonErrorResponse('An error occurred: ' . $e->getMessage(), 500);
         }
     }

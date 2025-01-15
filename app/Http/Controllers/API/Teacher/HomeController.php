@@ -221,18 +221,23 @@ class HomeController extends Controller
             if (!$user || $user->role !== 'teacher') {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
+
             // Get total statistics for the authenticated teacher's courses
-            $courses = Course::where('user_id', $user->id)->where('status','active')->pluck('id');
+            $courses = Course::where('user_id', $user->id)->where('status', 'active')->pluck('id');
             $totalCourses = $courses->count();
-            $totalReviews = Review::where('user_id', $user->id)->count();
-            $totalResourceValue = Course::where('user_id', $user->id)->where('status','active')->sum('price');
-            $totalEarning = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')->sum('amount');
-            $totalStudentEnroll = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')->count();
+            $reviews = Review::whereIn('course_id', $courses)
+                ->with(['user:id,name,avatar', 'course:id,name'])
+                ->get();
+            $totalReviews = $reviews->count();
+            $totalResourceValue = Course::where('user_id', $user->id)->where('status', 'active')->sum('price');
+            $totalEarning = CourseEnroll::whereIn('course_id', $courses)->where('status', 'completed')->sum('amount');
+            $totalStudentEnroll = CourseEnroll::whereIn('course_id', $courses)->where('status', 'completed')->count();
 
             // Get the year and month from the request, defaulting to current year
             $year = $request->input('year', Carbon::now()->year);
             $month = $request->input('month', null);
 
+            // If a month is provided, calculate weekly sales data
             if ($month) {
                 // Weekly sales data for a specific month and year
                 $startOfMonth = Carbon::create($year, $month, 1);
@@ -243,12 +248,15 @@ class HomeController extends Controller
                 $weekStart = $startOfMonth->copy();
 
                 for ($week = 1; $week <= $weeksInMonth; $week++) {
-
                     $weekEnd = $weekStart->copy()->addDays(6);
 
+                    // Ensure the week ends within the month's bounds
                     if ($weekEnd->greaterThan($endOfMonth)) {
                         $weekEnd = $endOfMonth;
                     }
+
+                    // Log the week range for debugging
+                    Log::info("Processing Week: $week, From: " . $weekStart->toDateString() . " To: " . $weekEnd->toDateString());
 
                     // Sum the total earnings for the week
                     $weekAmount = CourseEnroll::whereIn('course_id', $courses)
@@ -265,13 +273,20 @@ class HomeController extends Controller
                     ];
 
                     // Move to the next week (7 days later)
-                    $weekStart = $weekStart->addWeek(); // Add one week
+                    $weekStart = $weekStart->addWeek();
                 }
 
                 return response()->json([
                     'success' => true,
                     'message' => 'Weekly sales data retrieved successfully.',
-                    'data' => compact('totalCourses', 'totalReviews', 'totalResourceValue', 'totalEarning', 'totalStudentEnroll', 'salesReview')
+                    'data' => compact(
+                        'totalCourses',
+                        'totalReviews',
+                        'totalResourceValue',
+                        'totalEarning',
+                        'totalStudentEnroll',
+                        'salesReview'
+                    )
                 ], 200);
             }
 
@@ -295,12 +310,20 @@ class HomeController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Monthly sales data retrieved successfully.',
-                'data' => compact('totalCourses', 'totalReviews', 'totalResourceValue', 'totalEarning', 'totalStudentEnroll', 'courseGraphData')
+                'data' => compact(
+                    'totalCourses',
+                    'totalReviews',
+                    'totalResourceValue',
+                    'totalEarning',
+                    'totalStudentEnroll',
+                    'courseGraphData'
+                )
             ], 200);
 
         } catch (Exception $e) {
+            // Log any errors that occur
             Log::error($e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
+            return Helper::jsonErrorResponse('Something Went to Wrong', 500);
         }
     }
 }
