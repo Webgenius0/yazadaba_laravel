@@ -116,20 +116,29 @@ class WithdrawRequestController extends Controller
                 ->first();
 
             if ($latestRequest) {
-                // Explicitly cast 'remaining_balance' to integer format
+                // Ensure 'remaining_balance' is a float with 2 decimal places (e.g., 560.32)
                 $latestRequest->remaining_balance = (float) number_format($latestRequest->remaining_balance, 2, '.', '');
+
                 // Optionally hide specific fields before returning
                 $latestRequest->makeHidden(['amount', 'status', 'bank_info', 'created_at', 'updated_at','rejection_reason']);
 
                 return Helper::jsonResponse('true', 'Data fetched successfully.', 200, $latestRequest);
             } else {
-                return Helper::jsonResponse('false', 'No completed withdraw requests found.', 404);
+                // When no completed request is found, return the user's balance
+                $user = auth()->user();  // Get the authenticated user
+                $userBalance = (float) number_format($user->remaining_balance, 2, '.', '');  // Assuming `remaining_balance` exists in the user model
+
+                return Helper::jsonResponse('false', 'No completed withdraw requests found.', 404, [
+                    'remaining_balance' => $userBalance,
+                    'amount' => $userBalance
+                ]);
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return Helper::jsonResponse('false', 'Something went wrong, please try again.', 500);
         }
     }
+
 
 }
 
