@@ -220,10 +220,12 @@
             }
         }
         //reject withdraw request
-        function openRejectModal(event, id, userId) {
+        function openRejectModal(event, id, userId, amount) {
             Swal.fire({
                 title: "Provide a Reject Reason",
-                html: `<textarea id="reject-reason" class="swal2-input"></textarea>`,
+                html: `
+            <textarea id="reject-reason" class="swal2-input"></textarea>
+            <input type="hidden" id="reject-amount" value="${amount}" />`, // Hidden field for amount
                 inputAttributes: {
                     autocapitalize: "off"
                 },
@@ -239,14 +241,17 @@
                 },
                 preConfirm: async () => {
                     try {
-                        // Get the data from CKEditor
+                        // Get the rejection reason from CKEditor
                         const rejectReason = window.editor.getData().trim();
                         if (!rejectReason) {
                             Swal.showValidationMessage('Reject Reason is required!');
                             return false;
                         }
 
-                        // Submit the rejection reason to the backend
+                        // Get the hidden rejection amount
+                        const rejectAmount = document.querySelector('#reject-amount').value;
+
+                        // Submit the rejection reason and amount to the backend
                         const response = await fetch(`/withdraw-requests/${id}/${userId}/reject`, {
                             method: 'POST',
                             headers: {
@@ -254,7 +259,8 @@
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                             },
                             body: JSON.stringify({
-                                rejection_reason: rejectReason
+                                rejection_reason: rejectReason,
+                                rejection_amount: rejectAmount // Send the hidden rejection amount
                             })
                         });
 
@@ -279,6 +285,7 @@
                 }
             });
         }
+
 
 
         function showStatusChangeAlert(event, id, status) {

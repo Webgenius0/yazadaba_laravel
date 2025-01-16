@@ -49,7 +49,6 @@ class FirebaseTokenController extends Controller
         if ($validator->fails()) {
             return response()->json(['message' => $validator->errors()->first()], 400);
         }
-
         //first delete existing token
         $firebase = FirebaseToken::where('user_id', auth('api')->user()->id)->where('device_id', $request->device_id);
         if ($firebase) {
