@@ -104,15 +104,30 @@ class WithdrawRequestController extends Controller
         ]);
     }
 
-    public function myWallet(Request $request){
-
+    public function myWallet(Request $request)
+    {
         try {
-            $userId = auth()->user();
-            $data = WithdrawRequest::where('user_id', $userId)->get();
-            return Helper::jsonResponse('trur','Data fetch successfully.',200,$data);
-        }catch(Exception $e){
+            $userId = auth()->user()->id;
+
+            // Get the latest 'complete' WithdrawRequest for the authenticated user
+            $latestRequest = WithdrawRequest::where('user_id', $userId)
+                ->where('status', 'complete')
+                ->latest()
+                ->first();
+
+            if ($latestRequest) {
+                // Explicitly cast 'remaining_balance' to integer format
+                $latestRequest->remaining_balance = (float) number_format($latestRequest->remaining_balance, 2, '.', '');
+                // Optionally hide specific fields before returning
+                $latestRequest->makeHidden(['amount', 'status', 'bank_info', 'created_at', 'updated_at','rejection_reason']);
+
+                return Helper::jsonResponse('true', 'Data fetched successfully.', 200, $latestRequest);
+            } else {
+                return Helper::jsonResponse('false', 'No completed withdraw requests found.', 404);
+            }
+        } catch (Exception $e) {
             Log::error($e->getMessage());
-            return Helper::jsonResponse('false','Something went wrong, please try again.',500);
+            return Helper::jsonResponse('false', 'Something went wrong, please try again.', 500);
         }
     }
 
