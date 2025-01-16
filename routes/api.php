@@ -83,7 +83,7 @@ Route::group(['middleware' => 'auth:api'], static function () {
     //Withdraw Request
     Route::controller(\App\Http\Controllers\API\Teacher\WithdrawRequestController::class)->group(function () {
         Route::post('/withdraw-request', 'withdrawRequest');
-        Route::get('/acceptWithdrawRequest', 'acceptWithdrawRequest');
+        Route::get('/my-wallet', 'myWallet');
     });
     //Teacher Home Api
     Route::controller(HomeController::class)->prefix('home')->group(function () {

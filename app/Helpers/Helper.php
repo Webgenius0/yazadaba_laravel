@@ -12,34 +12,16 @@ use Vimeo\Laravel\Facades\Vimeo;
 
 class Helper {
     //! File or Image Upload
-    public static function fileUpload($fileContent, string $folder, string $name, string $extension = 'pdf'): ?string
-    {
-        // Create a slug for the file name
-        $fileName = Str::slug($name) . '.' . $extension;
-        $path     = public_path('uploads/' . $folder);
-
-        // Ensure the directory exists
+    public static function fileUpload($file, string $folder, string $name): ?string {
+        $imageName = Str::slug($name) . '.' . $file->extension();
+        $path      = public_path('uploads/' . $folder);
         if (!file_exists($path)) {
             if (!mkdir($path, 0755, true) && !is_dir($path)) {
                 throw new \RuntimeException(sprintf('Directory "%s" was not created', $path));
             }
         }
-        $filePath = $path . '/' . $fileName;
-        if ($extension === 'pdf') {
-            file_put_contents($filePath, $fileContent);
-        } else {
-            // Handle image uploads
-            if (is_string($fileContent)) {
-
-                $data = base64_decode($fileContent);
-                file_put_contents($filePath, $data);
-            } else {
-
-                $fileContent->move($path, $fileName);
-            }
-        }
-        // Return the relative file path
-        return 'uploads/' . $folder . '/' . $fileName;
+        $file->move($path, $imageName);
+        return 'uploads/' . $folder . '/' . $imageName;
     }
     //! File or Image Delete
     public static function fileDelete(string $path): void {
@@ -134,14 +116,28 @@ class Helper {
     /**
      * @throws Exception
      */
-    public static  function generateCertificateWithDynamicName($user, $course): string
+    public static function generateCertificateWithDynamicName($user, $course): string
     {
         try {
+            // Generate the PDF content using a Blade template
             $pdf = PDF::loadView('certificates.template', compact('user', 'course'));
+
+            // Generate a dynamic unique filename for the certificate
             $certificateFileName = uniqid('certificate_', true) . '.pdf';
-            return self::fileUpload($pdf->output(), 'certificates', $certificateFileName);
+
+            // Define the path to store the PDF file in 'public/uploads/certificates'
+            $certificatePath = public_path('uploads/certificates/' . $certificateFileName);
+
+            // Save the generated PDF to the specified path
+            $pdf->save($certificatePath);
+
+            // Optionally, you can also store the filename in the database to associate with the certificate
+            return 'uploads/certificates/' . $certificateFileName;  // Return the relative file path
         } catch (Exception $e) {
+            // Log any errors that occur during certificate generation
             Log::error('Certificate Generation Error: ' . $e->getMessage());
+
+            // Re-throw the exception to be handled by the caller
             throw $e;
         }
     }

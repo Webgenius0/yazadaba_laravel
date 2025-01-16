@@ -71,8 +71,8 @@ class WithdrawRequestController extends Controller
             'user_id' => $user->id,
             'amount' => $request->amount,
             'bank_info' => $request->bank_info,
-            'remaining_balance' => $remainingBalance,  // Store remaining balance
-            'status' => 'pending',  // Default status is pending
+            'remaining_balance' => $remainingBalance,
+            'status' => 'pending',
         ]);
 
         // Handle the case when an admin updates the request later (pending, rejected)
@@ -104,18 +104,17 @@ class WithdrawRequestController extends Controller
         ]);
     }
 
-    public function acceptWithdrawRequest(Request $request){
-        $user = auth()->user();
-        $notifications = $user->notifications;
-        $unreadNotifications = $user->unreadNotifications;
+    public function myWallet(Request $request){
 
-        return response()->json([
-            'success' => true,
-            'notifications' => $notifications,
-            'unreadNotifications' => $unreadNotifications,
-
-        ],200);
-
+        try {
+            $userId = auth()->user();
+            $data = WithdrawRequest::where('user_id', $userId)->get();
+            return Helper::jsonResponse('trur','Data fetch successfully.',200,$data);
+        }catch(Exception $e){
+            Log::error($e->getMessage());
+            return Helper::jsonResponse('false','Something went wrong, please try again.',500);
+        }
     }
 
 }
+
