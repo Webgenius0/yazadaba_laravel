@@ -12,11 +12,11 @@ use Vimeo\Laravel\Facades\Vimeo;
 
 class Helper {
     //! File or Image Upload
-    public static function fileUpload($fileContent, string $folder, string $name): ?string
+    public static function fileUpload($fileContent, string $folder, string $name, string $extension = 'pdf'): ?string
     {
         // Create a slug for the file name
-        $imageName = Str::slug($name) . '.pdf';
-        $path      = public_path('uploads/' . $folder);
+        $fileName = Str::slug($name) . '.' . $extension;
+        $path     = public_path('uploads/' . $folder);
 
         // Ensure the directory exists
         if (!file_exists($path)) {
@@ -24,15 +24,23 @@ class Helper {
                 throw new \RuntimeException(sprintf('Directory "%s" was not created', $path));
             }
         }
-        // Save the raw PDF content to a file
-        $filePath = $path . '/' . $imageName;
-        file_put_contents($filePath, $fileContent);  // Save the PDF content
+        $filePath = $path . '/' . $fileName;
+        if ($extension === 'pdf') {
+            file_put_contents($filePath, $fileContent);
+        } else {
+            // Handle image uploads
+            if (is_string($fileContent)) {
 
+                $data = base64_decode($fileContent);
+                file_put_contents($filePath, $data);
+            } else {
+
+                $fileContent->move($path, $fileName);
+            }
+        }
         // Return the relative file path
-        return 'uploads/' . $folder . '/' . $imageName;
+        return 'uploads/' . $folder . '/' . $fileName;
     }
-
-
     //! File or Image Delete
     public static function fileDelete(string $path): void {
         if (file_exists($path)) {
