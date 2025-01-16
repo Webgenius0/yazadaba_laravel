@@ -12,19 +12,23 @@ use Vimeo\Laravel\Facades\Vimeo;
 
 class Helper {
     //! File or Image Upload
-    public static function fileUpload($file, string $folder, string $name): ?string {
-        if (!$file->isValid()) {
-            return null;
-        }
-
-        $imageName = Str::slug($name) . '.' . $file->extension();
+    public static function fileUpload($fileContent, string $folder, string $name): ?string
+    {
+        // Create a slug for the file name
+        $imageName = Str::slug($name) . '.pdf';
         $path      = public_path('uploads/' . $folder);
+
+        // Ensure the directory exists
         if (!file_exists($path)) {
             if (!mkdir($path, 0755, true) && !is_dir($path)) {
                 throw new \RuntimeException(sprintf('Directory "%s" was not created', $path));
             }
         }
-        $file->move($path, $imageName);
+        // Save the raw PDF content to a file
+        $filePath = $path . '/' . $imageName;
+        file_put_contents($filePath, $fileContent);  // Save the PDF content
+
+        // Return the relative file path
         return 'uploads/' . $folder . '/' . $imageName;
     }
 
@@ -122,7 +126,7 @@ class Helper {
     /**
      * @throws Exception
      */
-    public function generateCertificateWithDynamicName($user, $course): string
+    public static  function generateCertificateWithDynamicName($user, $course): string
     {
         try {
             $pdf = PDF::loadView('certificates.template', compact('user', 'course'));

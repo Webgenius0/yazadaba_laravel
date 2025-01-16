@@ -211,7 +211,6 @@ class HomeController extends Controller
             'courses' => $courses->makeHidden(['id', 'created_at', 'updated_at', 'status', 'deleted_at']),
         ]);
     }
-
     public function sales(Request $request)
     {
         try {
@@ -242,7 +241,9 @@ class HomeController extends Controller
                 // Weekly sales data for a specific month and year
                 $startOfMonth = Carbon::create($year, $month, 1);
                 $endOfMonth = $startOfMonth->copy()->endOfMonth();
-                $weeksInMonth = $startOfMonth->diffInWeeks($endOfMonth);
+
+                // Calculate the number of weeks by checking the difference between start and end date
+                $weeksInMonth = ceil($startOfMonth->diffInDays($endOfMonth) / 7);
 
                 $salesReview = [];
                 $weekStart = $startOfMonth->copy();
@@ -326,4 +327,6 @@ class HomeController extends Controller
             return Helper::jsonErrorResponse('Something Went to Wrong', 500);
         }
     }
+
+
 }

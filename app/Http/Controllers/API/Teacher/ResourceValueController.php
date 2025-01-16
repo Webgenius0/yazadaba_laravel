@@ -28,9 +28,16 @@ class ResourceValueController extends Controller
             // Get total statistics for the authenticated teacher's courses
             $courses = Course::where('user_id', $user->id)->where('status','active')->pluck('id');
             $totalResourceValue = Course::where('user_id', $user->id)->where('status','active')->sum('price');
-            $averageResourceValue = Course::where('user_id', $user->id)->where('status','active')->count()
-                ? number_format(Course::where('user_id', $user->id)->where('status','active')->sum('price') / Course::where('user_id', $user->id)->where('status','active')->count(), 2)
-                : 0.00;
+            $averageResourceValue = Course::where('user_id', $user->id)
+                ->where('status', 'active')
+                ->count()
+                ? (int) (Course::where('user_id', $user->id)
+                        ->where('status', 'active')
+                        ->sum('price') / Course::where('user_id', $user->id)
+                        ->where('status', 'active')
+                        ->count())
+                : 0;
+
             $totalResourceSold = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')->count();
             $totalResourceSoldValue = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')->sum('amount');
             $totalStudentEnroll = CourseEnroll::whereIn('course_id', $courses)->count();

@@ -129,6 +129,8 @@ class MentorController extends Controller
                             $timeSinceCreated = $rating->created_at->diffForHumans();
                             return [
                                 'user_id' => $rating->user_id,
+                                'user_name' => $rating->user->name,
+                                'avatar' => $rating->user->avatar,
                                 'review' => $rating->review,
                                 'rating' => $rating->rating,
                                 'created_at' => $timeSinceCreated,

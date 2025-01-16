@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('course_id');
+            $table->string('publish_status');
             $table->enum('status', ['pending', 'accepted', 'rejected', 'declined'])->default('pending');
+            $table->text('reason')->nullable();
             $table->timestamps();
         });
     }

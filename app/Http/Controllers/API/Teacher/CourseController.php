@@ -6,17 +6,22 @@ use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Course;
+use App\Models\CourseModule;
 use App\Models\GradeLevel;
+use App\Models\PublishRequest;
+use App\Models\User;
+use App\Notifications\PublishRequestNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Exception;
 use App\Models\CourseEnroll;
+use Illuminate\Support\Facades\Notification;
+
 
 class CourseController extends Controller
 {
-
     public function view(): \Illuminate\Http\JsonResponse
     {
         $userId = Auth::user();
@@ -31,7 +36,6 @@ class CourseController extends Controller
         $data->makeHidden(['created_at', 'updated_at', 'deleted_at']);
         return Helper::jsonResponse(true, 'Course Data Fetch successfully', 200, $data);
     }
-
 
     public function create(Request $request): \Illuminate\Http\JsonResponse
     {
@@ -122,7 +126,6 @@ class CourseController extends Controller
 
         return Helper::jsonResponse(true, 'Course updated successfully', 200, $course_update);
     }
-
     public function delete($id): \Illuminate\Http\JsonResponse
     {
         $userId = Auth::id();
@@ -130,15 +133,21 @@ class CourseController extends Controller
         if (!$data) {
             return Helper::jsonErrorResponse('Course not found.', 404);
         }
+
         // Check if the course is already enrolled
         $enrollCourse = CourseEnroll::where('course_id', $data->id)->exists();
         if ($enrollCourse) {
             return Helper::jsonErrorResponse('Course already enrolled.', 400);
         }
+        // Delete related course modules
+        CourseModule::where('course_id', $data->id)->delete();
+        // Delete the cover image if it exists
         if ($data->cover_image) {
             Helper::fileDelete($data->cover_image);
         }
+        // Delete the course
         $data->delete();
+
         return Helper::jsonResponse(true, 'Course deleted successfully', 200, $data);
     }
 
@@ -176,45 +185,61 @@ class CourseController extends Controller
             return Helper::jsonResponse(false, 'Something went wrong.', 500);
         }
     }
-    public function TogglePublished($id): \Illuminate\Http\JsonResponse
+
+    public function TogglePublished(Request $request, $id): \Illuminate\Http\JsonResponse
     {
         try {
             $userId = Auth::id();
-            $data = Course::where('user_id', $userId)->find($id);
+            $course = Course::where('user_id', $userId)->find($id);
 
             // Check if course exists
-            if (!$data) {
-                return Helper::jsonErrorResponse('Course not found.', 404);
+            if (!$course) {
+                return response()->json(['success' => false, 'message' => 'Course not found.'], 404);
             }
 
-            // Check if the course is already enrolled
-            $enrollCourse = CourseEnroll::where('course_id', $data->id)->exists();
-            if ($enrollCourse) {
-                return Helper::jsonErrorResponse('Course already enrolled.', 400);
+            // Validate inputs
+            $request->validate([
+                'publish_status' => 'required|in:active,inactive',
+            ]);
+
+            $publishStatus = $request->input('publish_status');
+
+            // Check if the course is already in the requested publish status
+            if ($course->status === $publishStatus) {
+                return Helper::jsonResponse(false, 'The course is already ' . $publishStatus . '. No changes needed.', 400);
             }
 
-            // Check current status and toggle if valid
-            if ($data->status === 'active') {
-                $data->status = 'inactive';
-                $data->save();
-                return Helper::jsonResponse(true, 'Course has been deactivated successfully.', 200, $data);
-            } elseif ($data->status === 'inactive') {
-                return Helper::jsonErrorResponse('This course is inactive and cannot be reactivated.', 400);
-            }
-            // Default response for unexpected statuses
-            return Helper::jsonErrorResponse('Invalid course status.', 400);
-        }catch (\Exception $e) {
-            Log::error($e->getMessage());
-            return Helper::jsonResponse(false, 'Something went wrong.', 500);
+            // Create or update the publish request
+            $publishRequest = PublishRequest::updateOrCreate(
+                ['user_id' => $userId, 'course_id' => $id],
+                [
+                    'publish_status' => $publishStatus,
+                    'status' => 'pending',  // This is set to 'pending' to await admin approval
+                ]
+            );
+
+            // Notify admins about the request
+            $admins = User::where('role', 'admin')->get();
+            Notification::send($admins, new PublishRequestNotification($publishRequest));
+            // Construct the appropriate message based on the publish status
+            $message = $publishStatus === 'active'
+                ? 'Your request to publish the course is pending admin approval.'
+                : 'Your request to unpublish the course is pending admin approval.';
+
+            return Helper::jsonResponse(true, $message, 200, $publishRequest);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Something went wrong.'], 500);
         }
     }
+
+
     public function myResource(Request $request)
     {
         try {
             $user = Auth::user();
 
             if (!$user || $user->role != 'teacher') {
-               return Helper::jsonErrorResponse('User not authenticated.', 401);
+                return Helper::jsonErrorResponse('User not authenticated.', 401);
             }
 
             // Step 1: Fetch all courses for the specific teacher (user)
@@ -238,7 +263,7 @@ class CourseController extends Controller
             // Step 3: Return a combined response with all course data
             return Helper::jsonResponse(true, 'Resource Data fetched successfully', 200, $responseData);
         } catch (Exception $e) {
-             Log::error($e->getMessage());
+            Log::error($e->getMessage());
             return Helper::jsonErrorResponse($e->getMessage(), 500);
         }
     }

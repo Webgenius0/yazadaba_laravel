@@ -77,6 +77,8 @@
 
     <script>
         $(document).ready(function() {
+            var searchable = [];
+            var selectable = [];
             $.ajaxSetup({
                 headers: {
                     "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
@@ -84,16 +86,18 @@
             });
 
             if (!$.fn.DataTable.isDataTable('#data-table')) {
-                $('#data-table').DataTable({
+                let dTable = $('#data-table').DataTable({
                     order: [],
                     lengthMenu: [
                         [10, 25, 50, 100, 200, 500, -1],
                         ["10", "25", "50", "100", "200", "500", "All"]
                     ],
+
                     pageLength: 10,
                     processing: true,
                     responsive: true,
                     serverSide: true,
+
                     language: {
                         processing: `<div class="text-center">
                             <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
@@ -104,21 +108,64 @@
                         search: '',
                         searchPlaceholder: 'Search..'
                     },
+
+
+                    scroller: {
+                        loadingIndicator: false
+                    },
+                    pagingType: "full_numbers",
+                    dom: "<'row justify-content-between table-topbar'<'col-md-2 col-sm-4 px-0'l><'col-md-2 col-sm-4 px-0'f>>tipr",
                     ajax: {
                         url: "{{ route('admin.withdraw.request.index') }}",
                         type: "get",
                     },
-                    columns: [
-                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                        { data: 'user_name', name: 'user_name', orderable: true, searchable: true },
-                        { data: 'amount', name: 'amount', orderable: true, searchable: true },
-                        { data: 'status', name: 'status', orderable: true, searchable: true },
-                        { data: 'created_at', name: 'created_at', orderable: true, searchable: true },
-                        { data: 'action', name: 'action', orderable: false, searchable: false },
+
+                    columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false
+                    },
+                        {
+                            data: 'user_name',
+                            name: 'user_name',
+                            orderable: true,
+                            searchable: true
+                        },
+                        {
+                            data: 'amount',
+                            name: 'amount',
+                            orderable: true,
+                            searchable: true
+                        },
+
+                        {
+                            data: 'status',
+                            name: 'status',
+                            orderable: true,
+                            searchable: true
+                        },
+                        {
+                            data: 'created_at',
+                            name: 'created_at',
+                            orderable: true,
+                            searchable: true
+                        },
+
+                        {
+                            data: 'action',
+                            name: 'action',
+                            orderable: false,
+                            searchable: false
+                        },
                     ],
+                });
+                new DataTable('#example', {
+                    responsive: true
                 });
             }
         });
+
         // SweetAlert Delete confirm
         const deleteAlert = (id) => {
             Swal.fire({
