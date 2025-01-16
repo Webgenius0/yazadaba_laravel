@@ -6,6 +6,7 @@ use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\CourseEnroll;
+use App\Notifications\EnrollNotification;
 use GuzzleHttp\Promise\Create;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -55,10 +56,9 @@ class EnrollController extends Controller
             'transaction_id' => Str::random(20),
             'status' => 'completed',
         ]);
-
+        // Notify the user about enrollment
+        $user->notify(new EnrollNotification($course));
         // Return success response
         return Helper::jsonResponse(true, 'User successfully enrolled in the course.', 200, $enroll);
     }
-
-
 }

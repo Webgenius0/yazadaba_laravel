@@ -214,10 +214,9 @@ class CourseController extends Controller
                 ['user_id' => $userId, 'course_id' => $id],
                 [
                     'publish_status' => $publishStatus,
-                    'status' => 'pending',  // This is set to 'pending' to await admin approval
+                    'status' => 'pending',
                 ]
             );
-
             // Notify admins about the request
             $admins = User::where('role', 'admin')->get();
             Notification::send($admins, new PublishRequestNotification($publishRequest));

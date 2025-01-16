@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Backend;
 
+use App\Notifications\WithdrawRequestRejected;
 use Exception;
 use App\Models\User;
 use App\Models\Course;
@@ -85,7 +86,7 @@ class WithdrawRequestController extends Controller
         if (!$data) {
             return response()->json([
                 'success' => false,
-                'message' => 'Category not found',
+                'message' => 'Data not found',
             ]);
         }
 
@@ -130,6 +131,10 @@ class WithdrawRequestController extends Controller
         $withdrawRequest->status = 'rejected';
         $withdrawRequest->rejection_reason = $request->input('rejection_reason');
         $withdrawRequest->save();
+
+        // Notify the user about the rejection
+        $user = $withdrawRequest->user;
+        $user->notify(new WithdrawRequestRejected($request->input('rejection_reason')));
 
         // Return a JSON response
         return response()->json(['message' => 'Withdrawal request rejected successfully.']);

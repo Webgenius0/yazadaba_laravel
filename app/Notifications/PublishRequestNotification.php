@@ -31,25 +31,7 @@ class PublishRequestNotification extends Notification
      */
     public function via(mixed $notifiable): array
     {
-        return ['mail', 'database'];
-    }
-
-    /**
-     * Get the mail representation of the notification.
-     *
-     * @param mixed $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
-     */
-    public function toMail(mixed $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->subject('Course Publish Request')
-            ->greeting('Hello Admin,')
-            ->line('A user has submitted a request to toggle the status of a course.')
-            ->line("Course ID: {$this->publishRequest->course_id}")
-            ->line("Requested by User ID: {$this->publishRequest->user_id}")
-            ->action('Review Request', url('/admin/requests'))
-            ->line('Thank you for your attention.');
+        return ['database'];
     }
 
     /**
