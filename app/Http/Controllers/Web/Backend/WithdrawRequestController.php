@@ -62,7 +62,6 @@ class WithdrawRequestController extends Controller
                     ->rawColumns(['action', 'status', 'created_at'])
                     ->make(true);
             }
-
             return view('backend.layout.withdraw_request.index');
         } catch (Exception $e) {
             return redirect()->back()->with('t-error', 'Something went wrong! Please try again.');

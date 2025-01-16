@@ -1,6 +1,6 @@
 @extends('backend.app')
 
-@section('title', 'Withdraw Complete List')
+@section('title', 'Withdraw Request List')
 
 @push('style')
     <style>
@@ -42,7 +42,7 @@
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Withdraw Complete List</h4>
+                        <h4 class="card-title">Withdraw Request List</h4>
                         <div class="table-responsive mt-4 p-4">
                             <table class="table table-hover" id="data-table">
                                 <thead>
@@ -266,7 +266,7 @@
                 success: function(resp) {
                     $('#data-table').DataTable().ajax.reload();
 
-                    if (resp.success === true) {eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDAvYXBpL2xvZ2luIiwiaWF0IjoxNzM2ODcyMTI0LCJleHAiOjMzMTM2NzIxMjQsIm5iZiI6MTczNjg3MjEyNCwianRpIjoib2RGQXhpSTBkOE9lVWtEMyIsInN1YiI6IjIiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.5G3ZCwlNKTNl0h1yO0vRck8aY6IdQas8s2if5tvo5yA
+                    if (resp.success === true) {
                         toastr.success(resp.message);
                     } else {
                         toastr.error(resp.message);
