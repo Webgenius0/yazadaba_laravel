@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\FirebaseTokenController;
 use App\Http\Controllers\API\Teacher\CourseController;
 use App\Http\Controllers\API\Teacher\CourseModuleController;
 use App\Http\Controllers\API\Teacher\CurriculumController;
@@ -101,8 +102,6 @@ Route::group(['middleware' => 'auth:api'], static function () {
         Route::get('/revenue/trade/growth', 'RevenueTrendsGrowthIndicator');
 
     });
-
-
     //enroll student list
     Route::controller(\App\Http\Controllers\API\Teacher\CertificateController::class)->prefix('student')->group
     (function () {
@@ -138,11 +137,16 @@ Route::group(['middleware' => 'auth:api'], static function () {
 
     Route::post('/enroll', [\App\Http\Controllers\API\Student\EnrollController::class, 'enroll']);
     Route::post('/is-complete', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'isComplete']);
-//    Route::post('/review', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'review']);
 
 Route::get('/terms-condition', [TermsAndConditionController::class, 'getTermsAndConditions'])->name('termsandCondition');
 Route::get('/privacy-policy',[TermsAndConditionController::class, 'getPrivacyPolicy'])->name('privacyPolicy');
 
+
+// Firebase Token Module
+    Route::get("firebase/test", [FirebaseTokenController::class, 'test']);
+    Route::post("firebase/token/create", [FirebaseTokenController::class, 'store']);
+    Route::post("firebase/token/get", [FirebaseTokenController::class, "getToken"]);
+    Route::post("firebase/token/delete", [FirebaseTokenController::class, "deleteToken"]);
 });
 
 

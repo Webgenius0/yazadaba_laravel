@@ -89,6 +89,17 @@ class WithdrawRequestController extends Controller
         // Notify the user about the withdrawal request
         $user->notify(new WithdrawRequestNotification($withdrawalRequest));
         // Return a success response with withdrawal request details
+
+        if ($user->firebaseTokens) {
+            $notifyData = [
+                'title' => 'Withdrawal Request Submitted',
+                'body' => "Your withdrawal request of ৳{$request->amount} has been submitted successfully.",
+            ];
+            foreach ($user->firebaseTokens as $firebaseToken) {
+                Helper::sendNotifyMobile($firebaseToken->token, $notifyData);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Withdrawal request created successfully.',

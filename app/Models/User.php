@@ -65,6 +65,11 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
+    public function firebaseTokens(): HasMany
+    {
+        return $this->hasMany(FirebaseToken::class);
+    }
+
     /**
      * The attributes that are mass assignable.
      *

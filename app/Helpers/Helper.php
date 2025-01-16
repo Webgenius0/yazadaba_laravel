@@ -7,6 +7,11 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Kreait\Firebase\Exception\FirebaseException;
+use Kreait\Firebase\Exception\MessagingException;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification;
 use Vimeo\Laravel\Facades\Vimeo;
 
 
@@ -140,6 +145,22 @@ class Helper {
             // Re-throw the exception to be handled by the caller
             throw $e;
         }
+    }
+
+    public static function sendNotifyMobile($token, $notifyData): void
+    {
+        try {
+            $factory = (new Factory)->withServiceAccount(storage_path(env('FIREBASE_CREDENTIALS')));
+            $messaging = $factory->createMessaging();
+            $notification = Notification::create($notifyData['title'], Str::limit($notifyData['body'], 100));
+            $message = CloudMessage::withTarget('token', $token)->withNotification($notification);
+            $messaging->send($message);
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        } catch (MessagingException $e) {
+            Log::error($e->getMessage());
+        }
+        return;
     }
 
 }
