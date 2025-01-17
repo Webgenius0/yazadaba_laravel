@@ -191,24 +191,28 @@ class CourseController extends Controller
         try {
             $userId = Auth::id();
             $course = Course::where('user_id', $userId)->find($id);
-
             // Check if course exists
             if (!$course) {
                 return response()->json(['success' => false, 'message' => 'Course not found.'], 404);
             }
-
             // Validate inputs
             $request->validate([
                 'publish_status' => 'required|in:active,inactive',
             ]);
-
             $publishStatus = $request->input('publish_status');
-
             // Check if the course is already in the requested publish status
             if ($course->status === $publishStatus) {
                 return Helper::jsonResponse(false, 'The course is already ' . $publishStatus . '. No changes needed.', 400);
             }
-
+            // Check if there is already a pending publish request for this course and user
+            $existingPublishRequest = PublishRequest::where('user_id', $userId)
+                ->where('course_id', $id)
+                ->where('status', 'pending')
+                ->first();
+            if ($existingPublishRequest) {
+                // If there's already a pending request, don't send a notification and return a message
+                return Helper::jsonResponse(false, 'You have already submitted a pending request for this course.', 400);
+            }
             // Create or update the publish request
             $publishRequest = PublishRequest::updateOrCreate(
                 ['user_id' => $userId, 'course_id' => $id],
@@ -217,13 +221,25 @@ class CourseController extends Controller
                     'status' => 'pending',
                 ]
             );
-            // Notify admins about the request
+            // Notify admins about the request only if it's a new request
             $admins = User::where('role', 'admin')->get();
             Notification::send($admins, new PublishRequestNotification($publishRequest));
             // Construct the appropriate message based on the publish status
             $message = $publishStatus === 'active'
                 ? 'Your request to publish the course is pending admin approval.'
                 : 'Your request to unpublish the course is pending admin approval.';
+
+            // Send notification to the user
+            $user = auth()->user();
+            if ($user->firebaseTokens) {
+                $notifyData = [
+                    'title' => 'Course Publish Request Submitted',
+                    'body' => $message,
+                ];
+                foreach ($user->firebaseTokens as $firebaseToken) {
+                    Helper::sendNotifyMobile($firebaseToken->token, $notifyData);
+                }
+            }
 
             return Helper::jsonResponse(true, $message, 200, $publishRequest);
         } catch (Exception $e) {

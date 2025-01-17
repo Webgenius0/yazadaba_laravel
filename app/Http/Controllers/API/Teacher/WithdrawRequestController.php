@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\Teacher;
 
+use App\Models\User;
 use Exception;
 use App\Models\Course;
 use App\Helpers\Helper;
@@ -66,7 +67,6 @@ class WithdrawRequestController extends Controller
         // Calculate the remaining balance after the withdrawal
         $remainingBalance = $availableBalance - $request->amount;
 
-        // Check if the request already exists and if it was already completed or rejected
         $withdrawalRequest = WithdrawRequest::create([
             'user_id' => $user->id,
             'amount' => $request->amount,
@@ -74,32 +74,17 @@ class WithdrawRequestController extends Controller
             'remaining_balance' => $remainingBalance,
             'status' => 'pending',
         ]);
-
-        // Handle the case when an admin updates the request later (pending, rejected)
-        // Ensure that the original remaining balance is maintained.
-        if ($request->has('status') && in_array($request->status, ['pending', 'rejected'])) {
-            // In case the admin wants to update status (pending or rejected)
-            $withdrawalRequest->status = $request->status;
-            // Ensure the remaining_balance stays the same as initially calculated
-            $withdrawalRequest->remaining_balance = $remainingBalance;
-        }
-
-        // Save the request (if any status update was made)
-        $withdrawalRequest->save();
-        // Notify the user about the withdrawal request
+        // Notify user
         $user->notify(new WithdrawRequestNotification($withdrawalRequest));
-        // Return a success response with withdrawal request details
-
         if ($user->firebaseTokens) {
             $notifyData = [
-                'title' => 'Withdrawal Request Submitted',
-                'body' => "Your withdrawal request of ৳{$request->amount} has been submitted successfully.",
+                'title' => 'Withdrawal Request Send Successfully',
+                'body' => 'Your request to withdraw'. $request->amount .' has been successfully submitted and is awaiting approval. You will receive timely updates on the progress of your withdrawal after our team reviews your request. We appreciate your patience while we handle your request.',
             ];
             foreach ($user->firebaseTokens as $firebaseToken) {
                 Helper::sendNotifyMobile($firebaseToken->token, $notifyData);
             }
         }
-
         return response()->json([
             'success' => true,
             'message' => 'Withdrawal request created successfully.',
@@ -111,10 +96,11 @@ class WithdrawRequestController extends Controller
                 'created_at' => $withdrawalRequest->created_at->toDateTimeString(),
                 'updated_at' => $withdrawalRequest->updated_at->toDateTimeString(),
                 'wallet_balance' => $withdrawalRequest->remaining_balance,
+                'user_name' => $withdrawalRequest->user->name,
+                'user_avatar' => $withdrawalRequest->user->avatar,
             ],
         ]);
     }
-
     public function myWallet(Request $request)
     {
         try {
@@ -146,14 +132,13 @@ class WithdrawRequestController extends Controller
             $data = [
                 'my_wallet' => $remainingBalance,
             ];
-           return Helper::jsonResponse(true,'My Wallet Data Fetch Successfully',200,$data);
+            return Helper::jsonResponse(true,'My Wallet Data Fetch Successfully',200,$data);
         } catch (Exception $e) {
             // Log error and return response
             Log::error($e->getMessage());
             return Helper::jsonResponse('false', 'Something went wrong, please try again.', 500);
         }
     }
-
 
 }
 

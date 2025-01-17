@@ -43,7 +43,10 @@ class WithdrawRequestNotification extends Notification
             'message' => 'Your withdrawal request for ' . number_format($this->withdrawRequest->amount, 2) . ' has been submitted.',
             'withdraw_request_id' => $this->withdrawRequest->id,
             'amount' => $this->withdrawRequest->amount,
+            'user_name' => $this->withdrawRequest->user->name,
+            'user_avatar' => $this->withdrawRequest->user->avatar,
             'status' => $this->withdrawRequest->status,
+            'created_at' => $this->withdrawRequest->created_at->toDateTimeString(),
         ];
     }
 }

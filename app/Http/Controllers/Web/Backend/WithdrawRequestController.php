@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Backend;
 
+use App\Helpers\Helper;
 use App\Notifications\WithdrawRequestRejected;
 use Exception;
 use App\Models\User;
@@ -142,6 +143,17 @@ class WithdrawRequestController extends Controller
         // Notify the user about the rejection (optional)
         $user = $withdrawRequest->user;
         $user->notify(new WithdrawRequestRejected($request->input('rejection_reason')));
+
+        if ($user->firebaseTokens) {
+            $avatarPath = asset('backend/images/dashboard/img_1.jpg');
+            $notifyData = [
+                'title' => 'Withdrawal Request Rejected',
+                'body' => "Your withdrawal request of {$withdrawRequest->amount} has been rejected.\nReason:{!!$withdrawRequest->rejection_reason!!}",
+            ];
+            foreach ($user->firebaseTokens as $firebaseToken) {
+                Helper::sendNotifyMobile($firebaseToken->token, $notifyData);
+            }
+        }
 
         // Return a JSON response
         return response()->json(['message' => 'Withdrawal request rejected successfully.']);

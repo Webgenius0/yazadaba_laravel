@@ -58,6 +58,16 @@ class EnrollController extends Controller
         ]);
         // Notify the user about enrollment
         $user->notify(new EnrollNotification($course));
+        if ($user->firebaseTokens) {
+            // Prepare the notification data
+            $notifyData = [
+                'title' => 'Course Enrollment Success',
+                'body' => "You have successfully enrolled in the course '{$course->name}'. Start learning today!",
+            ];
+            foreach ($user->firebaseTokens as $firebaseToken) {
+                Helper::sendNotifyMobile($firebaseToken->token, $notifyData);
+            }
+        }
         // Return success response
         return Helper::jsonResponse(true, 'User successfully enrolled in the course.', 200, $enroll);
     }

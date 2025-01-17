@@ -5,6 +5,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use JetBrains\PhpStorm\NoReturn;
 
 class EnrollNotification extends Notification
 {
@@ -19,24 +20,17 @@ class EnrollNotification extends Notification
 
     public function via($notifiable): array
     {
-        return ['mail', 'database'];
+        return ['database'];
     }
 
-    public function toMail($notifiable): MailMessage
+    public function toDatabase($notifiable): array
     {
-        return (new MailMessage)
-            ->subject('Course Enrollment Successful')
-            ->line('You have successfully enrolled in the course: ' . $this->course->name)
-            ->line('Start learning and achieve your goals!')
-            ->action('View Course', url('/courses/' . $this->course->id))
-            ->salutation('Thank you for choosing us!');
-    }
 
-    public function toArray($notifiable): array
-    {
         return [
             'message' => 'You have successfully enrolled in the course: ' . $this->course->name,
+            'cover_image' => $this->course->cover_image,
             'course_id' => $this->course->id,
         ];
     }
+
 }

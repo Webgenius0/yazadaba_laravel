@@ -20,7 +20,6 @@ class FirebaseTokenController extends Controller
             $notifyData = [
                 'title' => "test title",
                 'body'  => "test body",
-//                'icon'  => env('APP_ICON')
             ];
             foreach ($user->firebaseTokens as $firebaseToken) {
                 Helper::sendNotifyMobile($firebaseToken->token, $notifyData);

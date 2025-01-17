@@ -21,7 +21,6 @@ class WithdrawRequestRejected extends Notification
     {
         return ['mail', 'database'];
     }
-
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
@@ -31,12 +30,12 @@ class WithdrawRequestRejected extends Notification
             ->line('If you have any questions, please contact support.')
             ->salutation('Thank you');
     }
-
     public function toArray($notifiable): array
     {
         return [
             'message' => 'Your withdrawal request has been rejected.',
             'reason' => $this->reason,
+
         ];
     }
 }
