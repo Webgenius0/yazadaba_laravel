@@ -27,6 +27,7 @@ class SocialLoginController extends Controller
     }
     public function SocialLogin(Request $request): \Illuminate\Http\JsonResponse
     {
+        //validation request
         $request->validate([
             'token'    => 'required',
             'role'     => 'required|in:teacher,student',
