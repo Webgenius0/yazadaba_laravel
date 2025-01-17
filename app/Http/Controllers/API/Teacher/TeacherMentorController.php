@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TeacherMentorController extends Controller
 {
@@ -27,17 +28,25 @@ class TeacherMentorController extends Controller
                 return Helper::jsonResponse(false, 'Access denied. User is not a teacher.', 403, []);
             }
 
-            $totalCourses = Course::where('user_id', $user->id)->count();
+            $totalCourses = Course::where('user_id', $user->id)->where('status','active')->count();
+            $courses = Course::where('user_id', $user->id)->where('status', 'active')->pluck('id');
+            $totalStudents = CourseEnroll::whereIn('course_id', $courses)
+                ->where('status', 'completed')
+                ->count();
 
-            $totalReviews = (float)round(Review::join('courses', 'reviews.course_id', '=', 'courses.id')
-                ->where('courses.user_id', $user->id)
-                ->avg('reviews.rating') ?? 0.0, 1);
+            $reviews = Review::whereIn('course_id', $courses)
+                ->with(['user:id,name,avatar,created_at', 'course:id,name'])
+                ->get();
 
-            $totalStudents = 0;
+            $totalReviews = $reviews->count();
+
+            $averageRating = $totalReviews > 0
+                ? round($reviews->avg('rating'), 1)
+                : 0.0;
 
             $courses = Course::with(['category', 'gradeLevel'])
                 ->where('user_id', $user->id)
-                ->where('status', 'inactive')
+                ->where('status', 'active')
                 ->get()
                 ->map(function ($course) {
                     // Sum the module video durations for the course
@@ -52,7 +61,9 @@ class TeacherMentorController extends Controller
                     } else {
                         $formattedDuration = floor($totalDurationInSeconds / 3600) . " hours";
                     }
+
                     $course->course_duration = $formattedDuration;
+
                     // Calculate the total ratings and average rating for the course
                     $course->total_ratings = $course->reviews()->count();
                     $course->average_rating = (float)round($course->reviews()->avg('rating') ?? 0.0, 1);
@@ -62,8 +73,9 @@ class TeacherMentorController extends Controller
                     $course->grade_level_name = $course->gradeLevel->name ?? null;
 
                     // Fetch the reviews and ratings for the course
-                    $course->ratings = $course->reviews()->select('user_id', 'review', 'rating', 'created_at')->get();
-
+                    $course->ratings = $course->reviews()
+                        ->select('user_id', 'review', 'rating', 'created_at')
+                        ->get();
                     return $course;
                 });
 
@@ -73,6 +85,7 @@ class TeacherMentorController extends Controller
                 'total_courses' => $totalCourses,
                 'total_reviews' => $totalReviews,
                 'total_students' => $totalStudents,
+                'average_ratting' => $averageRating,
                 'user_details' => [
                     'name' => $user->name,
                     'email' => $user->email,
@@ -88,17 +101,31 @@ class TeacherMentorController extends Controller
                         'grade_level_name' => $course->grade_level_name,
                         'total_ratings' => $course->total_ratings,
                         'average_rating' => $course->average_rating,
-                        'course_price' => $course->course_price,
+                        'course_price' => $course->price,
                         'total_course_duration' => $course->course_duration,
                         'ratings' => $course->ratings->map(function ($rating) {
+                            $user = $rating->user;
                             $timeSinceCreated = $rating->created_at->diffForHumans();
                             return [
                                 'user_id' => $rating->user_id,
+                                'user_name' => $user->name ?? 'User not found',
+                                'avatar' => $user->avatar ?? null,
                                 'review' => $rating->review,
-                                'rating' => $rating->rating,
+                                'rating' => (float) number_format($rating->rating, 1, '.', ''),
                                 'created_at' => $timeSinceCreated,
                             ];
                         }),
+                    ];
+                }),
+                'reviews' => $reviews->map(function ($rating) {
+                    $timeCreated = $rating->created_at ? $rating->created_at->diffForHumans() : '';
+                    return [
+                        'reviewer_id' => $rating->user->id,
+                        'avatar' => $rating->user->avatar,
+                        'name' => $rating->user->name,
+                        'rating' => (float)$rating->rating,
+                        'review' => $rating->review,
+                        'created_at' => $timeCreated,
                     ];
                 }),
             ];
@@ -106,6 +133,7 @@ class TeacherMentorController extends Controller
             return Helper::jsonResponse(true, 'Data Fetch Successfully', 200, $data);
 
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return Helper::jsonErrorResponse('An error occurred: ' . $e->getMessage(), 500);
         }
     }

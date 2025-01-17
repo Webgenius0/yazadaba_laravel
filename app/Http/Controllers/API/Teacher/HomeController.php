@@ -30,20 +30,30 @@ class HomeController extends Controller
         if ($user->role !== 'teacher') {
             return Helper::jsonResponse(false, 'Access denied. User is not a teacher.', 403, []);
         }
+
+        // Fetch course categories
         $CourseCategory = Category::all()->makeHidden(['created_at', 'updated_at', 'status']);
+
+        // Check if categories exist
         if ($CourseCategory->isEmpty()) {
             return Helper::jsonErrorResponse('Course category does not exist.', 200, []);
         }
-        $Courses = Course::where('user_id', $user->id)
-            ->withCount('reviews')
-            ->withAvg('reviews', 'rating')
+
+        // Fetch courses belonging to the authenticated user (teacher)
+        $Courses = Course::where('user_id', $user->id)->where('status', 'active')
             ->get()
             ->map(function ($course) {
+                // Count the number of reviews for the current course
+                $reviewsCount = DB::table('reviews')
+                    ->where('course_id', $course->id)
+                    ->count();
 
+                // Calculate the total duration of the course in seconds
                 $totalDurationInSeconds = DB::table('course_modules')
                     ->where('course_id', $course->id)
                     ->sum(DB::raw('TIME_TO_SEC(module_video_duration)'));
 
+                // Format the total duration
                 if ($totalDurationInSeconds < 60) {
                     $formattedDuration = "{$totalDurationInSeconds} sec";
                 } elseif ($totalDurationInSeconds < 3600) {
@@ -51,21 +61,30 @@ class HomeController extends Controller
                 } else {
                     $formattedDuration = floor($totalDurationInSeconds / 3600) . " hours";
                 }
-                // Update the course's course_duration field in the database
+
+                // Add the calculated duration and reviews count to the course
                 $course->course_duration = $formattedDuration;
-                $course->reviews_avg_rating = round($course->reviews_avg_rating ?? 0, 1);
+                $course->reviews_count = $reviewsCount;  // Reviews count specific to this course
+                $course->reviews_avg_rating = round((float) ($course->reviews_avg_rating ?? 0.0), 1);
+                // Fetch user details (name and avatar)
                 $course->user_id = DB::table('users')->where('id', $course->user_id)->value('name');
+                $course->avatar = DB::table('users')->where('id', $course->user_id)->value('avatar');
+
+                // Fetch course category name and grade level name
                 $course->category_id = DB::table('categories')->where('id', $course->category_id)->value('name');
                 $course->grade_level_id = DB::table('grade_levels')->where('id', $course->grade_level_id)->value('name');
-
                 return $course;
             });
+
+        // If no courses are found
         if ($Courses->isEmpty()) {
             return Helper::jsonResponse(true, 'Categories retrieved successfully, but no courses available.', 200, [
                 'category' => $CourseCategory,
                 'courses' => [],
             ]);
         }
+
+        // Return the response with courses and categories
         return Helper::jsonResponse(true, 'Courses and Categories retrieved successfully.', 200, [
             'category' => $CourseCategory,
             'courses' => $Courses->makeHidden(['created_at', 'updated_at', 'status', 'deleted_at']),
@@ -93,7 +112,7 @@ class HomeController extends Controller
         }
 
         // Retrieve courses for the teacher and category
-        $courses = Course::where('user_id', $user->id)
+        $courses = Course::where('user_id', $user->id)->where('status','active')
             ->where('category_id', $request->category_id)
             ->withCount('reviews')
             ->withAvg('reviews', 'rating')
@@ -116,6 +135,7 @@ class HomeController extends Controller
 
                 // Fetch related data like teacher's name, category, and grade level
                 $course->user_id = DB::table('users')->where('id', $course->user_id)->value('name');
+                $course->avatar = DB::table('users')->where('id', $course->user_id)->value('avatar');
                 $course->category_id = DB::table('categories')->where('id', $course->category_id)->value('name');
                 $course->grade_level_id = DB::table('grade_levels')->where('id', $course->grade_level_id)->value('name');
                 return $course;
@@ -154,7 +174,7 @@ class HomeController extends Controller
             return Helper::jsonErrorResponse('Search query cannot be empty.', 400);
         }
 
-        $courses = Course::where('user_id', $user->id)
+        $courses = Course::where('user_id', $user->id)->where('status','active')
             ->where('name', 'like', '%' . $searchQuery . '%')
             ->withCount('reviews')
             ->withAvg('reviews', 'rating')
@@ -176,6 +196,7 @@ class HomeController extends Controller
 
                 $course->reviews_avg_rating = round($course->reviews_avg_rating ?? 0, 1);
                 $course->user_id = DB::table('users')->where('id', $course->user_id)->value('name');
+                $course->avatar = DB::table('users')->where('id', $course->user_id)->value('avatar');
                 $course->category_id = DB::table('categories')->where('id', $course->category_id)->value('name');
                 $course->grade_level_id = DB::table('grade_levels')->where('id', $course->grade_level_id)->value('name');
 
@@ -190,73 +211,122 @@ class HomeController extends Controller
             'courses' => $courses->makeHidden(['id', 'created_at', 'updated_at', 'status', 'deleted_at']),
         ]);
     }
-
-    public function sales(Request $request): \Illuminate\Http\JsonResponse
+    public function sales(Request $request)
     {
         try {
             $user = Auth::user();
 
-            if (!$user) {
-                return Helper::jsonErrorResponse('User not authenticated.', 401);
+            // Ensure user is authenticated and is a teacher
+            if (!$user || $user->role !== 'teacher') {
+                return response()->json(['error' => 'Unauthorized'], 403);
             }
 
-            // Check if the user is a teacher
-            if ($user->role !== 'teacher') {
-                return Helper::jsonErrorResponse('Access denied. User is not a teacher.', 403);
+            // Get total statistics for the authenticated teacher's courses
+            $courses = Course::where('user_id', $user->id)->where('status', 'active')->pluck('id');
+            $totalCourses = $courses->count();
+            $reviews = Review::whereIn('course_id', $courses)
+                ->with(['user:id,name,avatar', 'course:id,name'])
+                ->get();
+            $totalReviews = $reviews->count();
+            $totalResourceValue = Course::where('user_id', $user->id)->where('status', 'active')->sum('price');
+            $totalEarning = CourseEnroll::whereIn('course_id', $courses)->where('status', 'completed')->sum('amount');
+            $totalStudentEnroll = CourseEnroll::whereIn('course_id', $courses)->where('status', 'completed')->count();
+
+            // Get the year and month from the request, defaulting to current year
+            $year = $request->input('year', Carbon::now()->year);
+            $month = $request->input('month', null);
+
+            // If a month is provided, calculate weekly sales data
+            if ($month) {
+                // Weekly sales data for a specific month and year
+                $startOfMonth = Carbon::create($year, $month, 1);
+                $endOfMonth = $startOfMonth->copy()->endOfMonth();
+
+                // Calculate the number of weeks by checking the difference between start and end date
+                $weeksInMonth = ceil($startOfMonth->diffInDays($endOfMonth) / 7);
+
+                $salesReview = [];
+                $weekStart = $startOfMonth->copy();
+
+                for ($week = 1; $week <= $weeksInMonth; $week++) {
+                    $weekEnd = $weekStart->copy()->addDays(6);
+
+                    // Ensure the week ends within the month's bounds
+                    if ($weekEnd->greaterThan($endOfMonth)) {
+                        $weekEnd = $endOfMonth;
+                    }
+
+                    // Log the week range for debugging
+                    Log::info("Processing Week: $week, From: " . $weekStart->toDateString() . " To: " . $weekEnd->toDateString());
+
+                    // Sum the total earnings for the week
+                    $weekAmount = CourseEnroll::whereIn('course_id', $courses)
+                        ->where('status', 'completed')
+                        ->whereBetween('created_at', [$weekStart, $weekEnd])
+                        ->sum('amount');
+
+                    // Add weekly data to the salesReview array
+                    $salesReview[] = [
+                        'week' => $week,
+                        'week_start' => $weekStart->toDateString(),
+                        'week_end' => $weekEnd->toDateString(),
+                        'amount' => $weekAmount,
+                    ];
+
+                    // Move to the next week (7 days later)
+                    $weekStart = $weekStart->addWeek();
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Weekly sales data retrieved successfully.',
+                    'data' => compact(
+                        'totalCourses',
+                        'totalReviews',
+                        'totalResourceValue',
+                        'totalEarning',
+                        'totalStudentEnroll',
+                        'salesReview'
+                    )
+                ], 200);
             }
 
-            $totalCourses = Course::where('user_id', auth()->id())->count();
-            $totalReviews = Review::where('user_id', auth()->id())->count();
-            $courses = Course::where('user_id', auth()->id())->pluck('id');
-            $totalPrice = Course::where('user_id', auth()->id())->sum('price');
-            $totalEarning = CourseEnroll::whereIn('course_id', $courses)->sum('amount');
-
-            // Get the total student count for the selected courses
-            $totalStudentCount = CourseEnroll::whereIn('course_id', $courses)->count();
-
-            // Define the months you're interested in (Jan, Mar, May, Jul, Sep, Nov, Dec)
-            $months = [1,2, 3,4, 5,6, 7,8, 9,10, 11, 12];
-
-            // Get the current year and month
-            $currentYear = Carbon::now()->year;
-            $currentMonth = Carbon::now()->month;
-
-            // Fetch the total amounts for each of the specified months
-            $courseGraph = CourseEnroll::whereIn('course_id', $courses)->where('status','completed')
-                ->whereYear('created_at', $currentYear)
-                ->whereIn(DB::raw('MONTH(created_at)'), $months)
+            // Monthly sales data for a specific year
+            $courseGraph = CourseEnroll::whereIn('course_id', $courses)
+                ->where('status', 'completed')
+                ->whereYear('created_at', $year)
                 ->selectRaw('MONTH(created_at) as month, SUM(amount) as total_amount')
                 ->groupBy('month')
                 ->orderBy('month')
                 ->get()
                 ->keyBy('month')
-                ->mapWithKeys(function ($item) {
-                    return [$item->month => $item->total_amount];
-                });
+                ->mapWithKeys(fn($item) => [$item->month => $item->total_amount]);
 
-            // Prepare the final result, including the current year and month
-            $allMonths = [1,2, 3,4, 5,6, 7,8, 9,10, 11, 12];
-            $courseGraphData = array_map(static function ($month) use ($courseGraph, $currentYear) {
-                return [
-                    'year' => $currentYear,
-                    'month' => Carbon::create()->month($month)->format('M'),
-                    'amount' => $courseGraph[$month] ?? 0,
-                ];
-            }, $allMonths);
-
-            // Return all data in the response
-            return Helper::jsonResponse(true, 'Courses retrieved successfully.', 200, [
-                'total_courses' => $totalCourses,
-                'total_reviews' => $totalReviews,
-                'total_price' => $totalPrice,
-                'total_earning' => $totalEarning,
-                'total_student_count' => $totalStudentCount,
-                'sales_review' => $courseGraphData,
+            $courseGraphData = collect(range(1, 12))->map(fn($month) => [
+                'year' => $year,
+                'month' => Carbon::create($year, $month)->format('M'),
+                'amount' => $courseGraph[$month] ?? 0,
             ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Monthly sales data retrieved successfully.',
+                'data' => compact(
+                    'totalCourses',
+                    'totalReviews',
+                    'totalResourceValue',
+                    'totalEarning',
+                    'totalStudentEnroll',
+                    'courseGraphData'
+                )
+            ], 200);
+
         } catch (Exception $e) {
+            // Log any errors that occur
             Log::error($e->getMessage());
-            return Helper::jsonErrorResponse($e->getMessage(), 500);
+            return Helper::jsonErrorResponse('Something Went to Wrong', 500);
         }
     }
+
 
 }

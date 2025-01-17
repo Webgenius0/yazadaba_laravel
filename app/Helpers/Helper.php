@@ -6,18 +6,18 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Kreait\Firebase\Exception\FirebaseException;
+use Kreait\Firebase\Exception\MessagingException;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification;
 use Vimeo\Laravel\Facades\Vimeo;
-use Spatie\Image\Image;
+
 
 class Helper {
     //! File or Image Upload
     public static function fileUpload($file, string $folder, string $name): ?string {
-        if (!$file->isValid()) {
-            return null;
-        }
-
         $imageName = Str::slug($name) . '.' . $file->extension();
         $path      = public_path('uploads/' . $folder);
         if (!file_exists($path)) {
@@ -28,8 +28,6 @@ class Helper {
         $file->move($path, $imageName);
         return 'uploads/' . $folder . '/' . $imageName;
     }
-
-
     //! File or Image Delete
     public static function fileDelete(string $path): void {
         if (file_exists($path)) {
@@ -123,20 +121,46 @@ class Helper {
     /**
      * @throws Exception
      */
-    public function generateCertificateWithDynamicName($user, $course): string
+    public static function generateCertificateWithDynamicName($user, $course): string
     {
         try {
-            // Generate the certificate PDF using dompdf
+            // Generate the PDF content using a Blade template
             $pdf = PDF::loadView('certificates.template', compact('user', 'course'));
 
-            // Generate a unique name for the certificate PDF
+            // Generate a dynamic unique filename for the certificate
             $certificateFileName = uniqid('certificate_', true) . '.pdf';
 
-            // Pass the raw PDF content to the fileUpload function to save the file in the 'public/uploads/certificates' directory
-            return self::fileUpload($pdf->output(), 'certificates', $certificateFileName);
+            // Define the path to store the PDF file in 'public/uploads/certificates'
+            $certificatePath = public_path('uploads/certificates/' . $certificateFileName);
+
+            // Save the generated PDF to the specified path
+            $pdf->save($certificatePath);
+
+            // Optionally, you can also store the filename in the database to associate with the certificate
+            return 'uploads/certificates/' . $certificateFileName;  // Return the relative file path
         } catch (Exception $e) {
+            // Log any errors that occur during certificate generation
             Log::error('Certificate Generation Error: ' . $e->getMessage());
-            throw $e;  // Re-throw the exception to handle it in the controller
+
+            // Re-throw the exception to be handled by the caller
+            throw $e;
         }
     }
+
+    public static function sendNotifyMobile($token, $notifyData): void
+    {
+        try {
+            $factory = (new Factory)->withServiceAccount(storage_path(env('FIREBASE_CREDENTIALS')));
+            $messaging = $factory->createMessaging();
+            $notification = Notification::create($notifyData['title'], Str::limit($notifyData['body'], 100));
+            $message = CloudMessage::withTarget('token', $token)->withNotification($notification);
+            $messaging->send($message);
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        } catch (MessagingException $e) {
+            Log::error($e->getMessage());
+        }
+        return;
+    }
+
 }

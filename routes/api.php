@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\FirebaseTokenController;
 use App\Http\Controllers\API\Teacher\CourseController;
 use App\Http\Controllers\API\Teacher\CourseModuleController;
 use App\Http\Controllers\API\Teacher\CurriculumController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\API\Auth\LogoutController;
 use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\Auth\SocialLoginController;
 use App\Http\Controllers\API\Auth\ResetPasswordController;
+use App\Http\Controllers\API\admin\TermsAndConditionController;
 
 Route::group(['middleware' => 'guest:api'], static function () {
     //register
@@ -35,12 +37,11 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::post('/logout', [LogoutController::class, 'logout']);
 
     //Teacher Profile management
-
     Route::get('/teacher/profile', [UserController::class, 'TeacherProfile']);
     Route::post('/teacher/upload-avatar', [UserController::class, 'TeacherUploadAvatar']);
     Route::post('/teacher/update-profile', [UserController::class, 'TeacherUpdateProfile']);
-    Route::delete('/teacher/delete-profile/{id}', [UserController::class, 'TeacherDeleteProfile']);
-
+    Route::delete('/teacher/delete-profile', [UserController::class, 'TeacherDeleteProfile']);
+    Route::post('/change-password', [ResetPasswordController::class, 'teacherPasswordManager']);
 
     //course related route
     Route::controller(CourseController::class)->prefix('course')->group(function () {
@@ -50,6 +51,8 @@ Route::group(['middleware' => 'auth:api'], static function () {
         Route::post('/delete/{id}', 'delete');
         Route::get('/get/categories', 'getCategories');
         Route::get('/get/grade-level', 'getGradeLevel');
+        Route::post('/{id}/toggle-status', 'TogglePublished');
+        Route::get('/enroll/course','myResource');
     });
 
     Route::controller(CourseModuleController::class)->prefix('course-module')->group(function () {
@@ -77,6 +80,11 @@ Route::group(['middleware' => 'auth:api'], static function () {
         Route::post('/create/{id}', 'submitReview');
     });
 
+    //Withdraw Request
+    Route::controller(\App\Http\Controllers\API\Teacher\WithdrawRequestController::class)->group(function () {
+        Route::post('/withdraw-request', 'withdrawRequest');
+        Route::get('/my-wallet', 'myWallet');
+    });
     //Teacher Home Api
     Route::controller(HomeController::class)->prefix('home')->group(function () {
         Route::get('/', 'index');
@@ -87,10 +95,12 @@ Route::group(['middleware' => 'auth:api'], static function () {
 
 
     Route::controller(ResourceValueController::class)->prefix('home')->group(function () {
+        Route::get('/resource/value', 'index');
         Route::get('/resource/performance/metrics', 'RevenueBreakdown');
+        Route::get('/enroll/complete/breakdown', 'EnrollmentCompletionBreakdown');
+        Route::get('/revenue/trade/growth', 'RevenueTrendsGrowthIndicator');
+
     });
-
-
     //enroll student list
     Route::controller(\App\Http\Controllers\API\Teacher\CertificateController::class)->prefix('student')->group
     (function () {
@@ -100,6 +110,8 @@ Route::group(['middleware' => 'auth:api'], static function () {
     //Student home all route
     Route::controller(\App\Http\Controllers\API\Student\HomeController::class)->prefix('home/student')->group(function () {
         Route::get('/', 'index');
+        Route::get('/filter-category', 'filterCategory');
+        Route::get('/search-course', 'searchByCourse');
     });
     Route::controller(\App\Http\Controllers\API\Student\CurriculumController::class)->prefix('student/course-curriculum')->group(function () {
         Route::get('/details/{curriculum}', 'details');
@@ -117,14 +129,25 @@ Route::group(['middleware' => 'auth:api'], static function () {
     });
 
     //Student Profile management
-
     Route::get('/student/profile', [UserController::class, 'StudentProfile']);
     Route::post('/student/upload-avatar', [UserController::class, 'StudentUploadAvatar']);
     Route::post('/student/update-profile', [UserController::class, 'StudentUpdateProfile']);
-    Route::delete('/student/delete-profile/{id}', [UserController::class, 'StudentDeleteProfile']);
+    Route::delete('/student/delete-profile', [UserController::class, 'StudentDeleteProfile']);
 
     Route::post('/enroll', [\App\Http\Controllers\API\Student\EnrollController::class, 'enroll']);
     Route::post('/is-complete', [\App\Http\Controllers\API\Student\IsCompleteController::class, 'isComplete']);
+
+    Route::get('/terms-condition', [TermsAndConditionController::class, 'getTermsAndConditions'])->name('termsandCondition');
+    Route::get('/privacy-policy',[TermsAndConditionController::class, 'getPrivacyPolicy'])->name('privacyPolicy');
+
+    // Firebase Token Module
+    Route::get("firebase/test", [FirebaseTokenController::class, 'test']);
+    Route::post("firebase/token/create", [FirebaseTokenController::class, 'store']);
+    Route::post("firebase/token/get", [FirebaseTokenController::class, "getToken"]);
+    Route::post("firebase/token/delete", [FirebaseTokenController::class, "deleteToken"]);
+
+    //Notification all route
+    Route::get('notifications', [\App\Http\Controllers\API\Notification\NotificationController::class, 'getNotifications']);
 
 });
 

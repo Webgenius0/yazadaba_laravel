@@ -70,7 +70,6 @@ class CoursesController extends Controller
         if (!$data) {
             return response()->json(['success' => false, 'message' => 'Course not found']);
         }
-
         if ($data->status === 'active') {
             $data->status = 'inactive';
             $data->save();

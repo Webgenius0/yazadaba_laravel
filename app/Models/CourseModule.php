@@ -51,7 +51,7 @@ class CourseModule extends Model
     }
     public function course(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Course::class);
+        return $this->belongsTo(Course::class , 'course_id');
     }
 
     public function isCompletes(): \Illuminate\Database\Eloquent\Relations\HasMany

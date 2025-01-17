@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Student;
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Models\ISComplete;
+use App\Models\Review;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -61,6 +62,29 @@ class IsCompleteController extends Controller
             Log::error($e->getMessage());
             return Helper::jsonErrorResponse('An error occurred: ' . $e->getMessage(), 500);
         }
+    }
+
+    public function review(Request $request): \Illuminate\Http\JsonResponse{
+        $user = auth()->user();
+        $request->validate([
+            'course_id' => 'required|exists:courses,id',
+            'review' => "required",
+            'ratting' =>'required|in:1,2,3,4,5',
+        ]);
+        if (!$user) {
+            return Helper::jsonErrorResponse('User not authenticated.', 401);
+        }
+        if ($user->role !== 'student') {
+            return Helper::jsonErrorResponse('Access denied. User is not a student.', 403, []);
+        }
+
+        $review = Review::CreateOrUpdate([
+            'user_id' => $user->id,
+            'course_id' => $request->course_id,
+            'review' => $request->review,
+            'ratting' => $request->ratting,
+        ]);
+        return Helper::jsonResponse(true, 'Review marked as complete successfully.', 200, $review);
     }
 
 }

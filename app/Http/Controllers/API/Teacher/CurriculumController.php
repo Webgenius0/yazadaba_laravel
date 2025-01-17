@@ -24,16 +24,35 @@ class CurriculumController extends Controller
             if ($user->role !== 'teacher') {
                 return Helper::jsonResponse(false, 'Access denied. User is not a teacher.', 403, []);
             }
-            $course = Course::with(['courseModules', 'category', 'gradeLevel']) ->where('user_id', $user->id)
-                ->where('status', 'inactive')->find($curriculum);
+
+            $course = Course::with(['courseModules', 'category', 'gradeLevel'])
+                ->where('user_id', $user->id)
+                ->where('status', 'active')
+                ->find($curriculum);
 
             if (!$course) {
                 return Helper::jsonErrorResponse('Course not found.', 404);
             }
+
             // Format each module's video duration dynamically
             $course->courseModules->each(function ($module) {
-                // Convert video duration to seconds
-                $totalSeconds = array_sum(array_map(fn($time) => (int)$time, explode(':', $module->module_video_duration)));
+                // Check if the duration is in the format of HH:MM:SS or MM:SS, or just seconds.
+                if (strpos($module->module_video_duration, ':') !== false) {
+                    // It's in HH:MM:SS or MM:SS format
+                    $timeParts = explode(':', $module->module_video_duration);
+                    $totalSeconds = 0;
+
+                    if (count($timeParts) === 3) {
+                        // HH:MM:SS format
+                        $totalSeconds = (int)$timeParts[0] * 3600 + (int)$timeParts[1] * 60 + (int)$timeParts[2];
+                    } else {
+                        // MM:SS format
+                        $totalSeconds = (int)$timeParts[0] * 60 + (int)$timeParts[1];
+                    }
+                } else {
+                    // It's just seconds (no colon)
+                    $totalSeconds = (int)$module->module_video_duration;
+                }
 
                 // Format the duration
                 if ($totalSeconds < 60) {
@@ -45,10 +64,12 @@ class CurriculumController extends Controller
                 }
             });
 
+            // Calculate total course duration
             $totalDurationInSeconds = DB::table('course_modules')
                 ->where('course_id', $course->id)
                 ->sum(DB::raw('TIME_TO_SEC(module_video_duration)'));
 
+            // Format total course duration
             if ($totalDurationInSeconds < 60) {
                 $formattedDuration = "{$totalDurationInSeconds} sec";
             } elseif ($totalDurationInSeconds < 3600) {
@@ -57,6 +78,7 @@ class CurriculumController extends Controller
                 $formattedDuration = floor($totalDurationInSeconds / 3600) . " hours";
             }
             $course->course_duration = $formattedDuration;
+
             // Add total ratings and average rating
             $course->total_ratings = $course->reviews()->count();
             $course->average_rating = (float)round($course->reviews()->avg('rating') ?? 0.0, 1);
@@ -72,6 +94,7 @@ class CurriculumController extends Controller
 
             $courseData = [
                 'user_details' => [
+                    'id'=>$user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'avatar' => $user->avatar,
@@ -90,20 +113,22 @@ class CurriculumController extends Controller
                     'total_course_duration' => $course->course_duration,
                     'course_modules' => $course->courseModules,
                     'ratings' => $course->ratings->map(function ($rating) {
+                        $user = $rating->user;
                         $timeSinceCreated = $rating->created_at->diffForHumans();
                         return [
                             'user_id' => $rating->user_id,
+                            'user_name' => $user->name ?? 'User not found',
+                            'avatar' => $user->avatar ?? null,
                             'review' => $rating->review,
-                            'rating' => $rating->rating,
+                            'rating' => (float) number_format($rating->rating, 1, '.', ''),
                             'created_at' => $timeSinceCreated,
                         ];
                     }),
-
-
                 ],
             ];
+
             return Helper::jsonResponse(true, 'Course Curriculum retrieved successfully.', 200, $courseData);
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             return Helper::jsonErrorResponse('An error occurred: ' . $e->getMessage(), 500);
         }
     }

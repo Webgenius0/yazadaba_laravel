@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Certificate;
 use App\Models\CourseEnroll;
 use App\Models\ISComplete;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,11 +19,9 @@ class MyResourceController extends Controller
     {
         try {
             $user = Auth::user();
-
             if (!$user) {
                 return Helper::jsonErrorResponse('User not authenticated.', 401);
             }
-
             if ($user->role !== 'student') {
                 return Helper::jsonResponse(false, 'Access denied. User is not a student.', 403, []);
             }
@@ -34,7 +33,6 @@ class MyResourceController extends Controller
                         ->with('courseModules');
                 }])
                 ->get();
-
             $ongoingCourses = [];
             $completedCourses = [];
 
@@ -44,32 +42,28 @@ class MyResourceController extends Controller
                     ->where('user_id', $user->id)
                     ->where('status', 'complete')
                     ->count();
-
                 $completionPercentage = $totalModules ? ($completedModules / $totalModules) * 100 : 0;
 
-                Log::info("Course ID: {$enrollment->course->id}, Total Modules: $totalModules, Completed Modules: $completedModules, Completion Percentage: $completionPercentage");
-
-            // Calculate total duration in seconds
+                // Calculate total duration in seconds
                 $totalDurationInSeconds = $enrollment->course->courseModules->sum(function ($module) {
                     $durationParts = explode(':', $module->module_video_duration);
                     return ($durationParts[0] * 3600) + ($durationParts[1] * 60) + $durationParts[2];
                 });
 
-                $formattedDuration = $totalDurationInSeconds < 60 ? "{$totalDurationInSeconds} sec" :
-                    ($totalDurationInSeconds < 3600 ? floor($totalDurationInSeconds / 60) . " min" : floor($totalDurationInSeconds / 3600) . " hours");
+                $formattedDuration = $totalDurationInSeconds < 60 ? "{$totalDurationInSeconds} sec" : ($totalDurationInSeconds < 3600 ? floor($totalDurationInSeconds / 60) . " min" : floor($totalDurationInSeconds / 3600) . " hours");
 
                 // Identify if the course is ongoing or completed
                 $ongoing = $completionPercentage > 0 && $completionPercentage < 100;
                 $completed = $completionPercentage === 100;
 
-                // Generate the certificate PDF after course completion
-                $certificateImage = (new Helper)->generateCertificateWithDynamicName($user, $enrollment->course);
-                // Store the certificate in the database
+                // Controller action after course completion
+                $certificateImage = Helper::generateCertificateWithDynamicName($user, $enrollment->course);
                 Certificate::create([
                     'user_id' => $user->id,
                     'course_id' => $enrollment->course->id,
                     'certificate_image' => $certificateImage,
                 ]);
+
                 // Get lesson details
                 $lessons = $enrollment->course->courseModules->map(function ($module) {
                     return [
@@ -89,7 +83,7 @@ class MyResourceController extends Controller
                         'cover_image' => $enrollment->course->cover_image,
                         'course_duration' => $formattedDuration,
                         'completion_percentage' => round($completionPercentage, 1),
-                        'certificate_image'=> url($certificateImage),
+                        'certificate_image' => url($certificateImage),
                         'lessons' => $lessons,
                     ];
                 }
@@ -102,7 +96,7 @@ class MyResourceController extends Controller
                         'cover_image' => $enrollment->course->cover_image,
                         'course_duration' => $formattedDuration,
                         'completion_percentage' => round($completionPercentage, 1),
-                        'certificate_image'=> url($certificateImage),
+                        'certificate_image' => url($certificateImage),
                         'lessons' => $lessons,
                     ];
                 }

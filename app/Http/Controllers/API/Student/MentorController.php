@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Student;
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\CourseEnroll;
 use App\Models\Review;
 use App\Models\User;
 use Exception;
@@ -16,7 +17,6 @@ class MentorController extends Controller
 {
     public function index($user_id): \Illuminate\Http\JsonResponse
     {
-
         try {
             // Ensure the user is authenticated
             $userId = Auth::user();
@@ -28,18 +28,32 @@ class MentorController extends Controller
             }
             // Find the user by the provided user_id
             $user = User::find($user_id);
-
             // If user is not found
             if (!$user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'User not found.',
-                    'status_code' => 404
-                ]);
+                    'code' => 404
+                ],404);
             }
-
             // Fetch total courses for this user
+            $totalCourses = Course::where('user_id', $user->id)->where('status','active')->count();
+
             $totalCourses = Course::where('user_id', $user->id)->count();
+
+            $courses = Course::where('user_id', $user->id)->where('status', 'active')->pluck('id');
+            $totalStudents = CourseEnroll::whereIn('course_id', $courses)
+                ->where('status', 'completed')
+                ->count();
+            $reviews = Review::whereIn('course_id', $courses)
+                ->with(['user:id,name,avatar,created_at', 'course:id,name'])
+                ->get();
+
+            $totalReviews = $reviews->count();
+
+            $averageRating = $totalReviews > 0
+                ? round($reviews->avg('rating'), 1)
+                : 0.0;
             // Calculate average rating for this user's courses
             $totalReviews = (float)round(Review::join('courses', 'reviews.course_id', '=', 'courses.id')
                 ->where('courses.user_id', $user->id)
@@ -51,7 +65,7 @@ class MentorController extends Controller
             // Fetch courses for this user
             $courses = Course::with(['category', 'gradeLevel'])
                 ->where('user_id', $user->id)
-                ->where('status', 'inactive')
+                ->where('status', 'active')
                 ->get()
                 ->map(function ($course) {
                     // Sum the module video durations for the course
@@ -77,9 +91,10 @@ class MentorController extends Controller
                     $course->category_name = $course->category->name ?? null;
                     $course->grade_level_name = $course->gradeLevel->name ?? null;
 
-                    // Fetch the reviews for the course
-                    $course->ratings = $course->reviews()->select('user_id', 'review', 'rating', 'created_at')->get();
-
+                    // Fetch the reviews and ratings for the course
+                    $course->ratings = $course->reviews()
+                        ->select('user_id', 'review', 'rating', 'created_at')
+                        ->get();
                     return $course;
                 });
 
@@ -92,6 +107,7 @@ class MentorController extends Controller
                 'total_reviews' => $totalReviews,
                 'total_students' => $totalStudents,
                 'user_details' => [
+                    'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'avatar' => $user->avatar,
@@ -112,11 +128,24 @@ class MentorController extends Controller
                             $timeSinceCreated = $rating->created_at->diffForHumans();
                             return [
                                 'user_id' => $rating->user_id,
+                                'user_name' => $rating->user->name,
+                                'avatar' => $rating->user->avatar,
                                 'review' => $rating->review,
                                 'rating' => $rating->rating,
                                 'created_at' => $timeSinceCreated,
                             ];
                         }),
+                    ];
+                }),
+                'reviews' => $reviews->map(function ($rating) {
+                    $timeCreated = $rating->created_at ? $rating->created_at->diffForHumans() : '';
+                    return [
+                        'reviewer_id' => $rating->user->id,
+                        'avatar' => $rating->user->avatar,
+                        'name' => $rating->user->name,
+                        'rating' => (float)$rating->rating,
+                        'review' => $rating->review,
+                        'created_at' => $timeCreated,
                     ];
                 }),
             ];
