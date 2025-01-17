@@ -118,33 +118,37 @@ class WithdrawRequestController extends Controller
     public function myWallet(Request $request)
     {
         try {
+            // Get user ID
             $userId = auth()->user()->id;
 
-            // Get the latest 'complete' WithdrawRequest for the authenticated user
-            $latestRequest = WithdrawRequest::where('user_id', $userId)
-                ->where('status', 'complete')
+            // Get the course IDs for the active courses of the user
+            $courses = Course::where('user_id', $userId)
+                ->where('status', 'active')
+                ->pluck('id');
+
+            // Get the completed course enrollments and their total amount (myWallet balance)
+            $myWallet = CourseEnroll::whereIn('course_id', $courses)
+                ->where('status', 'completed')
+                ->sum('amount');
+
+            // Get the latest withdrawal request for the user (assuming there's only one withdrawal request per user)
+            $withdrawalRequest = WithdrawRequest::where('user_id', $userId)
                 ->latest()
                 ->first();
 
-            if ($latestRequest) {
-                // Ensure 'remaining_balance' is a float with 2 decimal places (e.g., 560.32)
-                $latestRequest->remaining_balance = (float) number_format($latestRequest->remaining_balance, 2, '.', '');
-
-                // Optionally hide specific fields before returning
-                $latestRequest->makeHidden(['amount', 'status', 'bank_info', 'created_at', 'updated_at','rejection_reason']);
-
-                return Helper::jsonResponse('true', 'Data fetched successfully.', 200, $latestRequest);
+            // Check if the remaining_balance exists and is greater than 0, otherwise fall back to $myWallet
+            if ($withdrawalRequest && $withdrawalRequest->remaining_balance > 0) {
+                $remainingBalance = $withdrawalRequest->remaining_balance;
             } else {
-                // When no completed request is found, return the user's balance
-                $user = auth()->user();  // Get the authenticated user
-                $userBalance = (float) number_format($user->remaining_balance, 2, '.', '');  // Assuming `remaining_balance` exists in the user model
-
-                return Helper::jsonResponse('false', 'No completed withdraw requests found.', 404, [
-                    'remaining_balance' => $userBalance,
-                    'amount' => $userBalance
-                ]);
+                $remainingBalance = $myWallet;
             }
+            $remainingBalance = floatval(number_format($remainingBalance, 2, '.', ''));
+            $data = [
+                'my_wallet' => $remainingBalance,
+            ];
+           return Helper::jsonResponse(true,'My Wallet Data Fetch Successfully',200,$data);
         } catch (Exception $e) {
+            // Log error and return response
             Log::error($e->getMessage());
             return Helper::jsonResponse('false', 'Something went wrong, please try again.', 500);
         }

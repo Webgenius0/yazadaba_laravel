@@ -127,19 +127,25 @@ class WithdrawRequestController extends Controller
             return response()->json(['error' => 'User mismatch for this withdrawal request'], 403);
         }
 
+        // Store the amount to be added back to the user's balance
+        $amountToAddBack = $withdrawRequest->amount;
+
         // Update the status and rejection reason
         $withdrawRequest->status = 'rejected';
         $withdrawRequest->rejection_reason = $request->input('rejection_reason');
         $withdrawRequest->save();
 
-        // Notify the user about the rejection
+        // Add the rejected amount back to the withdrawal request's remaining_balance
+        $withdrawRequest->remaining_balance += $amountToAddBack;
+        $withdrawRequest->save();
+
+        // Notify the user about the rejection (optional)
         $user = $withdrawRequest->user;
         $user->notify(new WithdrawRequestRejected($request->input('rejection_reason')));
 
         // Return a JSON response
         return response()->json(['message' => 'Withdrawal request rejected successfully.']);
     }
-
     public function destroy($id){
         try {
             $data = WithdrawRequest::where('status','pending')->find($id);

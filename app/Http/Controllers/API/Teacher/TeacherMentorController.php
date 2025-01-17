@@ -28,14 +28,14 @@ class TeacherMentorController extends Controller
                 return Helper::jsonResponse(false, 'Access denied. User is not a teacher.', 403, []);
             }
 
-            $totalCourses = Course::where('user_id', $user->id)->count();
+            $totalCourses = Course::where('user_id', $user->id)->where('status','active')->count();
             $courses = Course::where('user_id', $user->id)->where('status', 'active')->pluck('id');
             $totalStudents = CourseEnroll::whereIn('course_id', $courses)
                 ->where('status', 'completed')
                 ->count();
 
             $reviews = Review::whereIn('course_id', $courses)
-                ->with(['user:id,name,avatar', 'course:id,name'])
+                ->with(['user:id,name,avatar,created_at', 'course:id,name'])
                 ->get();
 
             $totalReviews = $reviews->count();
@@ -118,12 +118,14 @@ class TeacherMentorController extends Controller
                     ];
                 }),
                 'reviews' => $reviews->map(function ($rating) {
+                    $timeCreated = $rating->created_at ? $rating->created_at->diffForHumans() : '';
                     return [
                         'reviewer_id' => $rating->user->id,
                         'avatar' => $rating->user->avatar,
                         'name' => $rating->user->name,
                         'rating' => (float)$rating->rating,
                         'review' => $rating->review,
+                        'created_at' => $timeCreated,
                     ];
                 }),
             ];

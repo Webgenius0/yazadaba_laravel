@@ -45,9 +45,8 @@ class MentorController extends Controller
             $totalStudents = CourseEnroll::whereIn('course_id', $courses)
                 ->where('status', 'completed')
                 ->count();
-
             $reviews = Review::whereIn('course_id', $courses)
-                ->with(['user:id,name,avatar', 'course:id,name'])
+                ->with(['user:id,name,avatar,created_at', 'course:id,name'])
                 ->get();
 
             $totalReviews = $reviews->count();
@@ -139,12 +138,14 @@ class MentorController extends Controller
                     ];
                 }),
                 'reviews' => $reviews->map(function ($rating) {
+                    $timeCreated = $rating->created_at ? $rating->created_at->diffForHumans() : '';
                     return [
                         'reviewer_id' => $rating->user->id,
                         'avatar' => $rating->user->avatar,
                         'name' => $rating->user->name,
                         'rating' => (float)$rating->rating,
                         'review' => $rating->review,
+                        'created_at' => $timeCreated,
                     ];
                 }),
             ];
