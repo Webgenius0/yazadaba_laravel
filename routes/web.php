@@ -1,11 +1,15 @@
 <?php
 
-
+use App\Http\Controllers\API\Auth\SocialLoginController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\Backend\CategoryController;
 use App\Http\Controllers\Web\Backend\CoursesController;
 use App\Http\Controllers\Web\Backend\GradeLevelController;
 use App\Http\Controllers\Web\Backend\SystemSettingController;
+use App\Http\Controllers\Web\Backend\WithdrawCompleteController;
+use App\Http\Controllers\Web\Backend\WithdrawRejectController;
+use App\Http\Controllers\Web\Backend\WithdrawRequestController;
+use App\Http\Controllers\Web\Backend\TermsAndConditionController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -33,8 +37,7 @@ Route::controller(CategoryController::class)->prefix('admin/category')->name('ad
 
 // Grade Level all route start
 
-Route::controller(GradeLevelController::class)->prefix('admin/grade-level')->name('admin.grade-level.')->group
-(function () {
+Route::controller(GradeLevelController::class)->prefix('admin/grade-level')->name('admin.grade-level.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::get('/create', 'create')->name('create');
     Route::post('/store', 'store')->name('store');
@@ -42,7 +45,6 @@ Route::controller(GradeLevelController::class)->prefix('admin/grade-level')->nam
     Route::put('/{gradeLevel}', 'update')->name('update');
     Route::delete('/{course}', 'destroy')->name('destroy');
     Route::get('status/{course}', 'status')->name('status');
-
 });
 // Grade Level all route end
 
@@ -56,6 +58,46 @@ Route::controller(CoursesController::class)->prefix('admin/course')->name('admin
 });
 // Course all route end
 
+// Withdraw Request all route start
+
+Route::controller(WithdrawRequestController::class)->prefix('admin/withdraw/request')->name('admin.withdraw.request.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::delete('/{id}', 'destroy')->name('destroy');
+    Route::post('status/{id}', 'status')->name('status');
+    Route::get('/{id}', 'show')->name('show');
+});
+Route::post('/withdraw-requests/{id}/{userId}/reject', [WithdrawRequestController::class, 'submitRejectionReason']);
+
+// Withdraw Request all route end
+
+
+Route::controller(WithdrawCompleteController::class)->prefix('admin/withdraw/complete')->name('admin.withdraw.complete.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::delete('/{id}', 'destroy')->name('destroy');
+    Route::get('status/{id}', 'status')->name('status');
+    Route::get('/{id}', 'show')->name('show');
+});
+// Withdraw Request all route end
+// Withdraw Request all route start
+
+Route::controller(WithdrawRejectController::class)->prefix('admin/withdraw/reject')->name('admin.withdraw.reject.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::delete('/{id}', 'destroy')->name('destroy');
+    Route::get('status/{id}', 'status')->name('status');
+    Route::get('/{id}', 'show')->name('show');
+    Route::post('/{id}', 'store')->name('store');
+});
+
+//Terms && condition
+Route::controller(TermsAndConditionController::class)->prefix('admin/terms-and-condition')->name('admin.terms-and-condition.')->group(function () {
+    Route::get('/', 'termsandCondition')->name('index');
+    Route::post('/terms-and-condition', 'update')->name('update');
+
+    Route::get('/privacy-policy', 'privacyPolicy')->name('privacyPolicy');
+    Route::post('/privacy-policy/update', 'updatePrivecyPolicy')->name('updatePrivecyPolicy');
+});
+// Withdraw Request all route end
+
 //System  settings all route
 
 Route::controller(SystemSettingController::class)->group(function () {
@@ -66,31 +108,9 @@ Route::controller(SystemSettingController::class)->group(function () {
     Route::get('/system/profile', 'profileIndex')->name('profile.setting');
     Route::post('/profile', 'profileUpdate')->name('profile.update');
     Route::post('password', 'passwordUpdate')->name('password.update');
-
 });
 
-Route::get('/run-migrate-fresh', static function () {
-    try {
-        $output = Artisan::call('migrate:fresh', ['--seed' => true]);
-        return response()->json([
-            'message' => 'Migrations Fresh Seed Successful.',
-            'output' => nl2br($output)
-        ], 200);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'An error occurred while running migrations.',
-            'error' => $e->getMessage(),
-        ], 500);
-    }
-});
-
-// Run composer update
-Route::get('/run-composer-update', static function () {
-    $output = shell_exec('composer update 2>&1');
-    return response()->json([
-        'message' => 'Composer update command executed.',
-        'output' => nl2br($output)
-    ]);
-});
+Route::get('social-login/{provider}', [SocialLoginController::class, 'RedirectToProvider'])->name('social.login');
+Route::get('social-login/callback/{provider}', [SocialLoginController::class, 'HandleProviderCallback']);
 
 require __DIR__ . '/auth.php';

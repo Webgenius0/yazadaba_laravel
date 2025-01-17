@@ -21,6 +21,7 @@ return new class extends Migration
             $table->double('price', 8, 2)->default(0);
             $table->string('cover_image');
             $table->time('course_duration')->default('00:00:00');
+            $table->boolean('is_enroll')->default(false);
             $table->timestamps();
             $table->softDeletes();
             $table->enum('status', ['active', 'inactive'])->default('inactive');

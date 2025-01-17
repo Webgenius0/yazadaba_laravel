@@ -17,7 +17,7 @@ class LoginController extends Controller
         $request->validate([
             'email'    => 'required|string',
             'password' => 'required|string',
-            'role'     => 'required|string|in:student,teacher',
+            'role'     => 'required|string|in:student,teacher,admin',
         ]);
 
         try {

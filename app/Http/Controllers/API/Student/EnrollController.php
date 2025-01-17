@@ -6,6 +6,7 @@ use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\CourseEnroll;
+use App\Notifications\EnrollNotification;
 use GuzzleHttp\Promise\Create;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,9 +20,7 @@ class EnrollController extends Controller
         $request->validate([
             'course_id' => 'required|exists:courses,id',
         ]);
-
         $user = auth()->user();
-
         // Check if the user is authenticated
         if (!$user) {
             return Helper::jsonErrorResponse('User not authenticated.', 401);
@@ -31,9 +30,8 @@ class EnrollController extends Controller
         if ($user->role !== 'student') {
             return Helper::jsonResponse(false, 'Access denied. User is not a student.', 403, []);
         }
-
         // Fetch the course
-        $course = Course::find($request->course_id);
+        $course = Course::where('status','active')->find($request->course_id);
 
         if (!$course) {
             return Helper::jsonErrorResponse('Course not found.', 404);
@@ -58,10 +56,19 @@ class EnrollController extends Controller
             'transaction_id' => Str::random(20),
             'status' => 'completed',
         ]);
-
+        // Notify the user about enrollment
+        $user->notify(new EnrollNotification($course));
+        if ($user->firebaseTokens) {
+            // Prepare the notification data
+            $notifyData = [
+                'title' => 'Course Enrollment Success',
+                'body' => "You have successfully enrolled in the course '{$course->name}'. Start learning today!",
+            ];
+            foreach ($user->firebaseTokens as $firebaseToken) {
+                Helper::sendNotifyMobile($firebaseToken->token, $notifyData);
+            }
+        }
         // Return success response
         return Helper::jsonResponse(true, 'User successfully enrolled in the course.', 200, $enroll);
     }
-
-
 }

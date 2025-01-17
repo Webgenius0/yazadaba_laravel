@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property mixed $id
  * @property mixed $name
  * @property mixed $courses
+ * @property mixed $firebaseTokens
+ * @property mixed $device_token
  * @method teacher()
  * @method static create(array $array)
  * @method static where(string $string, mixed $input)
@@ -34,7 +36,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes,Notifiable;
 
     public mixed $gender;
 
@@ -65,6 +67,11 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
+    public function firebaseTokens(): HasMany
+    {
+        return $this->hasMany(FirebaseToken::class);
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -90,6 +97,7 @@ class User extends Authenticatable implements JWTSubject
         'updated_at',
         'role',
         'status',
+        'google_id',
         'remember_token',
     ];
 

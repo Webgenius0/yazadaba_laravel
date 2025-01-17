@@ -116,4 +116,34 @@ class ResetPasswordController extends Controller
             return Helper::jsonErrorResponse($e->getMessage(), 500);
         }
     }
+
+
+//password manager
+    public function teacherPasswordManager(Request $request): \Illuminate\Http\JsonResponse
+    {
+        
+        $request->validate([
+            'old_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        try {
+            $user = auth('api')->user();
+
+            if (!$user) {
+                return Helper::jsonErrorResponse('User not found.', 404);
+            }
+            
+            if (!Hash::check($request->input('old_password'), $user->password)) {
+                return Helper::jsonErrorResponse('Invalid old password.', 422);
+            }
+
+            $user->password = Hash::make($request->input('new_password'));
+            $user->save();
+            return Helper::jsonResponse(true, 'Password changed successfully.', 200,$user);
+        } catch (Exception $e) {
+            return Helper::jsonErrorResponse($e->getMessage(), 500);
+        }
+    }
+   
 }
