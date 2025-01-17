@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property mixed $id
  * @property mixed $name
  * @property mixed $courses
+ * @property mixed $firebaseTokens
  * @method teacher()
  * @method static create(array $array)
  * @method static where(string $string, mixed $input)
