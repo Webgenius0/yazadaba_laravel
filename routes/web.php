@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\Auth\SocialLoginController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\Backend\CategoryController;
 use App\Http\Controllers\Web\Backend\CoursesController;
@@ -109,29 +110,7 @@ Route::controller(SystemSettingController::class)->group(function () {
     Route::post('password', 'passwordUpdate')->name('password.update');
 });
 
-
-Route::get('/run-migrate-fresh', static function () {
-    try {
-        $output = Artisan::call('migrate:fresh', ['--seed' => true]);
-        return response()->json([
-            'message' => 'Migrations Fresh Seed Successful.',
-            'output' => nl2br($output)
-        ], 200);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'An error occurred while running migrations.',
-            'error' => $e->getMessage(),
-        ], 500);
-    }
-});
-
-// Run composer update
-Route::get('/run-composer-update', static function () {
-    $output = shell_exec('composer update 2>&1');
-    return response()->json([
-        'message' => 'Composer update command executed.',
-        'output' => nl2br($output)
-    ]);
-});
+Route::get('social-login/{provider}', [SocialLoginController::class, 'RedirectToProvider'])->name('social.login');
+Route::get('social-login/callback/{provider}', [SocialLoginController::class, 'HandleProviderCallback']);
 
 require __DIR__ . '/auth.php';

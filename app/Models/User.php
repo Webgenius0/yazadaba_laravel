@@ -97,6 +97,7 @@ class User extends Authenticatable implements JWTSubject
         'updated_at',
         'role',
         'status',
+        'google_id',
         'remember_token',
     ];
 

@@ -30,7 +30,6 @@ Route::group(['middleware' => 'guest:api'], static function () {
     Route::post('/reset-password', [ResetPasswordController::class, 'ResetPassword']);
     //social login
     Route::post('/social-login', [SocialLoginController::class, 'SocialLogin']);
-
 });
 
 Route::group(['middleware' => 'auth:api'], static function () {
