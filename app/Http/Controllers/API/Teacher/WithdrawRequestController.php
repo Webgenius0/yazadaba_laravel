@@ -139,6 +139,10 @@ class WithdrawRequestController extends Controller
             return Helper::jsonResponse('false', 'Something went wrong, please try again.', 500);
         }
     }
-
+    public function withdrawRequestList(Request $request)
+    {
+        $data = WithdrawRequest::where('user_id', auth()->user()->id)->get();
+        return Helper::jsonResponse(true, 'List of Withdraw Requests', 200, $data);
+    }
 }
 

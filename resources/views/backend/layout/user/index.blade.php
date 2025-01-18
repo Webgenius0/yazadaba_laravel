@@ -37,10 +37,7 @@
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Lecturers List</h4>
-                        <div style="display: flex;justify-content: end;">
-                            <a href="{{ route('admin.lecturer.create') }}" class="btn btn-primary">Add Lecturer</a>
-                        </div>
+                        <h4 class="card-title">Users List</h4>
                         <div class="table-responsive mt-4 p-4">
                             <table class="table table-hover" id="data-table">
                                 <thead>
@@ -48,9 +45,9 @@
                                         <th>SI</th>
                                         <th>Name</th>
                                         <th>Email</th>
-                                        <th>User Type</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
+                                        <th>avatar</th>
+                                        <th>gender</th>
+                                        <th>is_verified</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -58,6 +55,7 @@
                                 </tbody>
                             </table>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -88,9 +86,11 @@
                 let dTable = $('#data-table').DataTable({
                     order: [],
                     lengthMenu: [
-                        [25, 50, 100, 200, 500, -1],
-                        [25, 50, 100, 200, 500, "All"]
+                        [ 10, 25, 50, 100, 200, 500, -1 ],
+                        [ "10", "25", "50", "100", "200", "500", "All" ]
                     ],
+
+                    pageLength: 10,
                     processing: true,
                     responsive: true,
                     serverSide: true,
@@ -100,19 +100,20 @@
                             <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
                             <span class="visually-hidden">Loading...</span>
                           </div>
-                            </div>`
+                            </div>`,
+                        lengthMenu: '_MENU_',
+                        search: '',
+                        searchPlaceholder: 'Search..'
                     },
-
                     scroller: {
                         loadingIndicator: false
                     },
                     pagingType: "full_numbers",
                     dom: "<'row justify-content-between table-topbar'<'col-md-2 col-sm-4 px-0'l><'col-md-2 col-sm-4 px-0'f>>tipr",
                     ajax: {
-                        url: "{{ route('admin.lecturer') }}",
+                        url: "{{ route('admin.user.index') }}",
                         type: "get",
                     },
-
                     columns: [{
                             data: 'DT_RowIndex',
                             name: 'DT_RowIndex',
@@ -132,22 +133,25 @@
                             searchable: true
                         },
                         {
-                            data: 'role',
-                            name: 'role',
+                            data: 'avatar',
+                            name: 'avatar',
                             orderable: true,
                             searchable: true
                         },
                         {
-                            data: 'status',
-                            name: 'status',
+                            data: 'gender',
+                            name: 'gender',
                             orderable: true,
                             searchable: true
                         },
                         {
-                            data: 'action',
-                            name: 'action',
-                            orderable: false,
-                            searchable: false
+                            data: 'is_verified',
+                            name: 'is_verified',
+                            orderable: true,
+                            searchable: true,
+                            render: function(data, type, row) {
+                                return data ? 'True' : 'False';
+                            }
                         },
                     ],
                 });
@@ -157,113 +161,5 @@
                 });
             }
         });
-
-
-        // sweet alert something went wrong
-        const errorAlert = () => {
-            Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: "Something went wrong!",
-                footer: '<a href="#">Why do I have this issue?</a>'
-            });
-        }
-
-        // Sweet alert Delete confirm
-        const deleteAlert = (id) => {
-            Swal.fire({
-                title: "Are you sure?",
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Yes, delete it!"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    deleteAuction(id);
-                }
-            });
-        }
-
-
-        // deleting an auction
-        const deleteAuction = (id) => {
-            try {
-                let url = '{{ route('admin.lecturer.destroy', ':id') }}';
-                let csrfToken = `{{ csrf_token() }}`;
-                $.ajax({
-                    type: "DELETE",
-                    url: url.replace(':id', id),
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken
-                    },
-                    success: (response) => {
-                        $('#data-table').DataTable().ajax.reload();
-                        if (response.success === true) {
-                            Swal.fire({
-                                title: "Deleted!",
-                                text: "Auction has been deleted.",
-                                icon: "success"
-                            });
-                        } else if (response.errors) {
-                            console.log(response.errors[0]);
-                            errorAlert();
-                        } else {
-                            toastr.success(response.message);
-                        }
-                    },
-                    error: (error) => {
-                        console.log(error.message);
-                        errorAlert()
-                    }
-                })
-            } catch (e) {
-                console.log(e)
-            }
-        }
-
-
-        function showStatusChangeAlert(id) {
-            event.preventDefault();
-
-            Swal.fire({
-                title: 'Are you sure?',
-                text: 'You want to update the status?',
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    statusChange(id);
-                }
-            });
-        }
-
-        // Status Change
-        function statusChange(id) {
-            var url = '{{ route('admin.lecturer.changeStatus', ':id') }}';
-            $.ajax({
-                type: "GET",
-                url: url.replace(':id', id),
-                success: function(resp) {
-                    console.log(resp);
-                    // Reloade DataTable
-                    $('#data-table').DataTable().ajax.reload();
-                    if (resp.success === true) {
-                        // show toast message
-                        toastr.success(resp.message);
-                    } else if (resp.errors) {
-                        toastr.error(resp.errors[0]);
-                    } else {
-                        toastr.error(resp.message);
-                    }
-                }, // success end
-                error: function(error) {
-                    // location.reload();
-                } // Erro
-            });
-        }
     </script>
 @endpush

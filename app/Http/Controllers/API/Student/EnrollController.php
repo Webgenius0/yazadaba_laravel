@@ -19,13 +19,13 @@ class EnrollController extends Controller
         // Validate incoming request data
         $request->validate([
             'course_id' => 'required|exists:courses,id',
+            'transaction_id' => 'required|string|max:255',
         ]);
         $user = auth()->user();
         // Check if the user is authenticated
         if (!$user) {
             return Helper::jsonErrorResponse('User not authenticated.', 401);
         }
-
         // Check if the user is a student
         if ($user->role !== 'student') {
             return Helper::jsonResponse(false, 'Access denied. User is not a student.', 403, []);
@@ -53,7 +53,7 @@ class EnrollController extends Controller
             'user_id' => $user->id,
             'course_id' => $request->course_id,
             'amount' => $coursePrice,
-            'transaction_id' => Str::random(20),
+            'transaction_id' => $request->transaction_id,
             'status' => 'completed',
         ]);
         // Notify the user about enrollment

@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\Backend\CoursesController;
 use App\Http\Controllers\Web\Backend\GradeLevelController;
 use App\Http\Controllers\Web\Backend\PayTabsController;
 use App\Http\Controllers\Web\Backend\SystemSettingController;
+use App\Http\Controllers\Web\Backend\UserController;
 use App\Http\Controllers\Web\Backend\WithdrawCompleteController;
 use App\Http\Controllers\Web\Backend\WithdrawRejectController;
 use App\Http\Controllers\Web\Backend\WithdrawRequestController;
@@ -48,6 +49,15 @@ Route::controller(GradeLevelController::class)->prefix('admin/grade-level')->nam
     Route::get('status/{course}', 'status')->name('status');
 });
 // Grade Level all route end
+
+// Course all route start
+
+Route::controller(UserController::class)->prefix('admin/user')->name('admin.user.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::delete('/{id}', 'destroy')->name('destroy');
+});
+// Course all route end
+
 
 // Course all route start
 
@@ -115,9 +125,5 @@ Route::get('social-login/{provider}', [SocialLoginController::class, 'RedirectTo
 Route::get('social-login/callback/{provider}', [SocialLoginController::class, 'HandleProviderCallback']);
 
 
-Route::get('/paytabs/paytabs', [PayTabsController::class, 'showPaymentPage'])->name('paytabs.paytabs');
-Route::post('/paytabs/callback', [PayTabsController::class, 'paymentCallback'])->name('paytabs.callback');
-Route::get('/paytabs/success', [PayTabsController::class, 'paymentSuccess'])->name('paytabs.success');
-Route::get('/paytabs/failed', [PayTabsController::class, 'paymentFailed'])->name('paytabs.failed');
 
 require __DIR__ . '/auth.php';

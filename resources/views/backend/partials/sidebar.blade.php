@@ -29,7 +29,15 @@
             </a>
         </li>
         {{-- ..................................................... --}}
-
+        <!-- Category -->
+        <li
+            class="menu-item {{ Request::routeIs('admin.user.*') || Request::routeIs('admin.user') ? 'active' : '' }}">
+            <a href="{{ route('admin.user.index') }}" class="menu-link">
+                <i class='menu-icon tf-icons bx bxs-badge-check'></i>
+                <div data-i18n="Layouts">Users</div>
+            </a>
+        </li>
+        <!-- Category End  -->
 
         <!-- Category -->
         <li

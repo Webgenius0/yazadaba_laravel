@@ -327,6 +327,4 @@ class HomeController extends Controller
             return Helper::jsonErrorResponse('Something Went to Wrong', 500);
         }
     }
-
-
 }
