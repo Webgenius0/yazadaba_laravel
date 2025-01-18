@@ -35,7 +35,7 @@ class WithdrawRequestRejected extends Notification
         return [
             'message' => 'Your withdrawal request has been rejected.',
             'reason' => $this->reason,
-
+            'created_at' => now()->toDateTimeString(),
         ];
     }
 }

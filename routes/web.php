@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\Backend\CategoryController;
 use App\Http\Controllers\Web\Backend\CoursesController;
 use App\Http\Controllers\Web\Backend\GradeLevelController;
+use App\Http\Controllers\Web\Backend\PayTabsController;
 use App\Http\Controllers\Web\Backend\SystemSettingController;
 use App\Http\Controllers\Web\Backend\WithdrawCompleteController;
 use App\Http\Controllers\Web\Backend\WithdrawRejectController;
@@ -112,5 +113,11 @@ Route::controller(SystemSettingController::class)->group(function () {
 
 Route::get('social-login/{provider}', [SocialLoginController::class, 'RedirectToProvider'])->name('social.login');
 Route::get('social-login/callback/{provider}', [SocialLoginController::class, 'HandleProviderCallback']);
+
+
+Route::get('/paytabs/paytabs', [PayTabsController::class, 'showPaymentPage'])->name('paytabs.paytabs');
+Route::post('/paytabs/callback', [PayTabsController::class, 'paymentCallback'])->name('paytabs.callback');
+Route::get('/paytabs/success', [PayTabsController::class, 'paymentSuccess'])->name('paytabs.success');
+Route::get('/paytabs/failed', [PayTabsController::class, 'paymentFailed'])->name('paytabs.failed');
 
 require __DIR__ . '/auth.php';

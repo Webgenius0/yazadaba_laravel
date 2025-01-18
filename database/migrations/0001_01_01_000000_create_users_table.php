@@ -33,7 +33,8 @@ return new class extends Migration
             $table->string('licence_image')->nullable();
             $table->boolean('is_verified')->default(false);
             $table->string('dob')->nullable();
-            $table->string('google_id')->nullable();
+            $table->string('provider')->nullable();
+            $table->string('provider_id')->nullable();
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();

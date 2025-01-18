@@ -30,6 +30,8 @@ class EnrollNotification extends Notification
             'message' => 'You have successfully enrolled in the course: ' . $this->course->name,
             'cover_image' => $this->course->cover_image,
             'course_id' => $this->course->id,
+            'created_at' => now()->toDateTimeString(),
+            
         ];
     }
 

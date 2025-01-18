@@ -27,7 +27,6 @@ class SocialLoginController extends Controller
     }
     public function SocialLogin(Request $request): \Illuminate\Http\JsonResponse
     {
-        //validation request
         $request->validate([
             'token'    => 'required',
             'role'     => 'required|in:teacher,student',
@@ -35,34 +34,41 @@ class SocialLoginController extends Controller
         ]);
 
         try {
-            $provider = $request->provider;
+            $provider   = $request->provider;
+            $role       = $request->role;
             $socialUser = Socialite::driver($provider)->stateless()->userFromToken($request->token);
 
             if ($socialUser) {
-                $user = User::withTrashed()->where('email', $socialUser->email)->first();
+                $user = User::withTrashed()
+                    ->where('email', $socialUser->getEmail())
+                    ->orWhere(function ($query) use ($provider, $socialUser) {
+                        $query->where('provider', $provider)
+                            ->where('provider_id', $socialUser->getId());
+                    })
+                    ->first();
 
-                // Check if the user is soft deleted
-                if ($user && !empty($user->deleted_at)) {
+                if (!empty($user->deleted_at)) {
                     return Helper::jsonErrorResponse('Your account has been deleted.', 410);
                 }
 
-                // If no user found, create a new user
+                $isNewUser = false;
+
                 if (!$user) {
                     $password = Str::random(16);
-                    $user = User::create([
+                    $user     = User::create([
                         'name'              => $socialUser->getName(),
                         'email'             => $socialUser->getEmail(),
                         'password'          => bcrypt($password),
                         'avatar'            => $socialUser->getAvatar(),
+                        'provider'          => $provider,
+                        'provider_id'       => $socialUser->getId(),
+                        'role'              => $role,
                         'email_verified_at' => now(),
-                        'role'              => $request->role,
                     ]);
+                    $isNewUser = true;
                 }
 
-                // Login the user
                 Auth::login($user);
-
-                // Create JWT token for the user
                 $token = auth('api')->login($user);
 
                 return response()->json([
@@ -75,11 +81,10 @@ class SocialLoginController extends Controller
                     'data'       => $user,
                 ], 200);
             } else {
-                return Helper::jsonResponse(false, 'Unauthorized', 401);
+                return Helper::jsonErrorResponse('Unauthorized', 401);
             }
         } catch (Exception $e) {
-            return Helper::jsonResponse(false, 'Something went wrong', 500, ['error' => $e->getMessage()]);
+            return Helper::jsonErrorResponse('Something went wrong', 500, ['error' => $e->getMessage()]);
         }
     }
-
 }

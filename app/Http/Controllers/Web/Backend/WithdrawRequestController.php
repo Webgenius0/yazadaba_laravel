@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Backend;
 
 use App\Helpers\Helper;
+use App\Notifications\WithdrawCompleteNotification;
 use App\Notifications\WithdrawRequestRejected;
 use Exception;
 use App\Models\User;
@@ -80,39 +81,61 @@ class WithdrawRequestController extends Controller
 
     public function status(Request $request, $courseId): ?\Illuminate\Http\JsonResponse
     {
-        // Find the withdraw request by ID
+        // Find the withdraw request by course ID
         $data = WithdrawRequest::find($courseId);
 
         // If the record doesn't exist, return an error message
         if (!$data) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data not found',
+                'message' => 'Withdraw request not found.',
             ]);
         }
 
         // Fetch the new status from the AJAX request
         $newStatus = $request->input('status');
 
-        // Check if the provided status is valid
-        if (in_array($newStatus, ['pending', 'rejected', 'complete'])) {
-            // Update the status of the withdraw request
-            $data->status = $newStatus;
-            $data->save();
-
-            // Return a success response with a message
-            return response()->json([
-                'success' => true,
-                'message' => 'Status updated successfully.',
-            ]);
-        } else {
-            // If the status is invalid, return an error response
+        // Validate the provided status
+        $validStatuses = ['pending', 'rejected', 'complete'];
+        if (!in_array($newStatus, $validStatuses)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid status provided.',
+                'message' => 'Invalid status provided. Valid options are: pending, rejected, complete.',
             ]);
         }
+
+        // Update the status of the withdraw request
+        $data->status = $newStatus;
+        $data->save();
+
+        // Notify the user
+        $data->user->notify(new WithdrawCompleteNotification($data));
+
+        // Send Firebase notification if the user has registered tokens
+        $user = auth()->user();
+        if ($user->firebaseTokens->isNotEmpty()) {
+            // Construct the message
+            $message = "Your withdrawal request for course {$data->course->name} has been marked as {$newStatus}.";
+
+            // Data for Firebase notification
+            $notifyData = [
+                'title' => 'Withdrawal Status Update',
+                'body' => $message,
+            ];
+
+            // Send notification to each Firebase token
+            foreach ($user->firebaseTokens as $firebaseToken) {
+                Helper::sendNotifyMobile($firebaseToken->token, $notifyData);
+            }
+        }
+
+        // Return a success response
+        return response()->json([
+            'success' => true,
+            'message' => 'Status updated successfully.',
+        ]);
     }
+
     public function submitRejectionReason(Request $request, $id, $userId)
     {
         // Validate the incoming request

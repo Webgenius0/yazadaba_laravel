@@ -13,24 +13,19 @@ class NotificationController extends Controller
         $notifications = $user->notifications()
             ->orderBy('created_at', 'desc')
             ->get();
-            $formattedNotifications = $notifications->map(function ($notification) {
-                return [
-                    'id' => $notification->id,
-                    'type' => $notification->type,
-                    'message' => $notification->data['message'],
-                    'withdraw_request_id' => $notification->data['withdraw_request_id'],
-                    'amount' => $notification->data['amount'],
-                    'user_name' => $notification->data['user_name'],
-                    'user_avatar' => $notification->data['user_avatar'],
-                    'status' => $notification->data['status'],
-                    'created_at' => $notification->created_at->toDateTimeString(),
-                ];
+
+        $formattedNotifications = $notifications->map(function ($notification) {
+            return [
+                'id' => $notification->id,
+                'type' => $notification->type,
+                'data' => $notification->data,
+            ];
         });
 
         return response()->json([
             'success' => true,
             'message' => 'Notifications retrieved successfully',
             'notifications' => $formattedNotifications,
-        ],200);
+        ], 200);
     }
 }
