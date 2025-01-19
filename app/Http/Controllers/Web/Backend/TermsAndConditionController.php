@@ -10,7 +10,7 @@ use Exception;
 
 class TermsAndConditionController extends Controller
 {
-    public function termsandCondition()
+    public function termsandCondition(): \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory|\Illuminate\Foundation\Application
     {
         $termsAndCondition = TermsAndCondition::first();
         return view('backend.layout.terms&condition.termsandCondition', compact('termsAndCondition'));
@@ -59,5 +59,14 @@ class TermsAndConditionController extends Controller
             return back()->with('t-error', 'Failed to update');
         }
         return redirect()->back()->with('success', 'Terms and condition updated successfully');
+    }
+
+    public function appTermsAndCondition(): \Illuminate\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    {
+        return view('backend.layout.terms&condition.app.term_and_condition');
+    }
+    public function appPrivacyPolicy(): \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory|\Illuminate\Foundation\Application
+    {
+        return view('backend.layout.terms&condition.app.privacy_and_policy');
     }
 }

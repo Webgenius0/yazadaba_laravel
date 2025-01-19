@@ -38,7 +38,6 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Courses List</h4>
-
                         <div class="table-responsive mt-4 p-4">
                             <table class="table table-hover" id="data-table">
                                 <thead>

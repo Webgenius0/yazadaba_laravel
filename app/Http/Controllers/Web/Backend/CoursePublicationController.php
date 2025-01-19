@@ -61,7 +61,7 @@ class CoursePublicationController extends Controller
                     ->rawColumns(['action', 'created_at', 'status'])
                     ->make(true);
             }
-            return view('backend.layout.course_publication.index');
+            return view('backend.layout.published_request.index');
         } catch (Exception $e) {
             return redirect()->back()->with('t-error', 'Something went wrong! Please try again.');
         }
@@ -73,7 +73,5 @@ class CoursePublicationController extends Controller
         $data->delete();
         return response()->json(['t-success' => true, 'message' => 'Deleted successfully.']);
     }
-
-
 
 }

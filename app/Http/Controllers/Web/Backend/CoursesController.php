@@ -23,7 +23,7 @@ class CoursesController extends Controller
                     ->addIndexColumn()
                     ->addColumn('cover_image', function ($data) {
                         $url = asset($data->cover_image);
-                        return '<img src="' . $url . '" alt="image" class="img-fluid">';
+                        return '<img src="' . $url . '" alt="image" class="img-fluid" style="width: 40px; height: 40px;">';
                     })
                     ->addColumn('user_name', function ($data) {
                         return $data->user->name;

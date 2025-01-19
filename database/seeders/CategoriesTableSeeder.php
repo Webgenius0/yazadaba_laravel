@@ -15,24 +15,21 @@ class CategoriesTableSeeder extends Seeder
      */
     public function run(): void
     {
-        // Instantiate Faker
-        $faker = Faker::create();
-
-        // Define categories with specific names and images
+        // Define categories with specific names and a static image path
         $categories = [
-            ['name' => 'Math', 'icon' => $faker->imageUrl(100, 100, 'abstract', true, 'Math'), 'status' => 'active'],
-            ['name' => 'English', 'icon' => $faker->imageUrl(100, 100, 'people', true, 'English'), 'status' => 'active'],
-            ['name' => 'Science', 'icon' => $faker->imageUrl(100, 100, 'nature', true, 'Science'), 'status' => 'active'],
-            ['name' => 'History', 'icon' => $faker->imageUrl(100, 100, 'city', true, 'History'), 'status' => 'active'],
-            ['name' => 'Geography', 'icon' => $faker->imageUrl(100, 100, 'sports', true, 'Geography'), 'status' => 'active'],
-            ['name' => 'Literature', 'icon' => $faker->imageUrl(100, 100, 'business', true, 'Literature'), 'status' => 'active'],
-            ['name' => 'Art', 'icon' => $faker->imageUrl(100, 100, 'abstract', true, 'Art'), 'status' => 'active'],
-            ['name' => 'Music', 'icon' => $faker->imageUrl(100, 100, 'nightlife', true, 'Music'), 'status' => 'active'],
-            ['name' => 'Computer Science', 'icon' => $faker->imageUrl(100, 100, 'technics', true, 'Computer Science'), 'status' => 'active'],
-            ['name' => 'Physical Education', 'icon' => $faker->imageUrl(100, 100, 'sports', true, 'Physical Education'), 'status' => 'active'],
+            ['name' => 'Math', 'icon' => 'backend/images/category.png', 'status' => 'active'],
+            ['name' => 'English', 'icon' => 'backend/images/category.png', 'status' => 'active'],
+            ['name' => 'Science', 'icon' => 'backend/images/category.png', 'status' => 'active'],
+            ['name' => 'History', 'icon' => 'backend/images/category.png', 'status' => 'active'],
+            ['name' => 'Geography', 'icon' => 'backend/images/category.png', 'status' => 'active'],
+            ['name' => 'Literature', 'icon' => 'backend/images/category.png', 'status' => 'active'],
+            ['name' => 'Art', 'icon' => 'backend/images/category.png', 'status' => 'active'],
+            ['name' => 'Music', 'icon' => 'backend/images/category.png', 'status' => 'active'],
+            ['name' => 'Computer Science', 'icon' => 'backend/images/category.png', 'status' => 'active'],
+            ['name' => 'Physical Education', 'icon' => 'backend/images/category.png', 'status' => 'active'],
         ];
 
-        // Insert predefined categories into the database
+// Insert predefined categories into the database
         foreach ($categories as $category) {
             DB::table('categories')->insert([
                 'name' => $category['name'],

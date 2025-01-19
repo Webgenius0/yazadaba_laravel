@@ -3,6 +3,13 @@
 @section('title', 'Dashboard')
 
 @section('content')
+    @php
+       use App\Models\CourseEnroll;
+       use App\Models\User;
+        $userCount = User::count();
+      $totalAmount = CourseEnroll::sum('amount');
+$seventyFivePercent = $totalAmount * 0.75;
+ @endphp
 <div class="content-wrapper">
     <!-- Content -->
 
@@ -51,7 +58,7 @@
 
                   </div>
                   <span class="fw-semibold d-block mb-1">Total User</span>
-                  <h3 class="card-title mb-2">{{ $user ?? '0' }}</h3>
+                  <h3 class="card-title mb-2">{{ $userCount ?? '0' }}</h3>
                 </div>
               </div>
             </div>
@@ -60,16 +67,15 @@
                 <div class="card-body">
                   <div class="card-title d-flex align-items-start justify-content-between">
                     <div class="avatar flex-shrink-0">
-                      <img
-                        src="{{ asset('backend/assets/img/icons/unicons/users.png') }}"
-                        alt="Credit Card"
-                        class="rounded"
-                      />
+                        <svg class="rounded" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M12 17v5"></path>
+                            <path d="M12 12l10 5-10 5-10-5 10-5z"></path>
+                        </svg>
                     </div>
-
                   </div>
-                  <span class="fw-semibold d-block mb-1">Total Booking</span>
-                  <h3 class="card-title mb-2">0</h3>
+                  <span class="fw-semibold d-block mb-1">Total Amount</span>
+                  <h3 class="card-title mb-2">{{$seventyFivePercent ?? '0.0'}}</h3>
                 </div>
               </div>
             </div>

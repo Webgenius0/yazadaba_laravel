@@ -103,11 +103,6 @@ Route::group(['middleware' => 'auth:api'], static function () {
 
     });
     //enroll student list
-    Route::controller(\App\Http\Controllers\API\Teacher\CertificateController::class)->prefix('student')->group
-    (function () {
-        Route::get('/list/{course_id}', 'index');
-        Route::post('/certificate', 'store');
-    });
     //Student home all route
     Route::controller(\App\Http\Controllers\API\Student\HomeController::class)->prefix('home/student')->group(function () {
         Route::get('/', 'index');
@@ -146,13 +141,9 @@ Route::group(['middleware' => 'auth:api'], static function () {
     Route::post("firebase/token/create", [FirebaseTokenController::class, 'store']);
     Route::post("firebase/token/get", [FirebaseTokenController::class, "getToken"]);
     Route::post("firebase/token/delete", [FirebaseTokenController::class, "deleteToken"]);
-
     //Notification all route
     Route::get('notifications', [\App\Http\Controllers\API\Notification\NotificationController::class, 'getNotifications']);
-
 });
-
-
 
 
 

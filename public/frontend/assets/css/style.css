@@ -1,0 +1,213 @@
+/* google fonts */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+/* google fonts */
+
+html,
+body,
+div,
+span,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+a,
+strong,
+i,
+ol,
+ul,
+li,
+form,
+label,
+footer,
+header,
+menu,
+nav,
+section {
+  margin: 0;
+  padding: 0;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+button:focus,
+a:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+:root {
+  --primary-color: #242424;
+  --font-poppins: "Poppins", serif;
+}
+
+body {
+  box-sizing: border-box;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+main {
+  overflow: hidden;
+}
+
+/* START:: CSS 
+===============================*/
+.login-section {
+  padding: 100px 0px;
+  background-color: #f7f7f7;
+}
+.login-image-wrap {
+  height: 100%;
+  background-color: #fff;
+  border-radius: 10px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  transition: all 0.4s ease-in-out;
+  -webkit-transition: all 0.4s ease-in-out;
+  -moz-transition: all 0.4s ease-in-out;
+  -ms-transition: all 0.4s ease-in-out;
+  -o-transition: all 0.4s ease-in-out;
+  overflow: hidden;
+}
+.login-image-wrap:hover {
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+}
+.login-image-wrap:hover img {
+  transform: scale(1.05);
+  -webkit-transform: scale(1.05);
+  -moz-transform: scale(1.05);
+  -ms-transform: scale(1.05);
+  -o-transform: scale(1.05);
+  cursor: pointer;
+}
+.login-form-wrapper {
+  background-color: #fff;
+  padding: 80px 50px;
+  border-radius: 10px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  height: 100%;
+  transition: all 0.3s ease-in-out;
+  -webkit-transition: all 0.3s ease-in-out;
+  -moz-transition: all 0.3s ease-in-out;
+  -ms-transition: all 0.3s ease-in-out;
+  -o-transition: all 0.3s ease-in-out;
+}
+.login-form-wrapper:hover {
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+}
+.login-image {
+}
+.login-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.4s ease-in-out;
+  -webkit-transition: all 0.4s ease-in-out;
+  -moz-transition: all 0.4s ease-in-out;
+  -ms-transition: all 0.4s ease-in-out;
+  -o-transition: all 0.4s ease-in-out;
+}
+.login-form-wrapper .login-title {
+  margin-bottom: 48px;
+}
+.login-form-wrapper .login-title h2 {
+  color: var(--primary-color);
+  font-family: var(--font-poppins);
+  font-size: 48px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 30px;
+}
+.input-item {
+  margin-bottom: 16px;
+}
+.input-item label {
+  display: block;
+  color: #333;
+  font-family: var(--font-poppins);
+  font-size: 19px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 30px;
+  margin-bottom: 10px;
+}
+.input-item input {
+  color: var(--primary-color);
+  font-family: var(--font-poppins);
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 30px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #e8ecec;
+}
+.input-item input:focus {
+  border: 1px solid #469a4c;
+}
+.input-item input::placeholder {
+  color: #b5b5b5;
+}
+.remember-main-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  margin-bottom: 40px;
+}
+.login-button {
+  border: none;
+  padding: 16px;
+  border-radius: 16px;
+  background: #469a4c;
+  color: #fff;
+  width: 100%;
+  font-weight: 600;
+  font-size: 18px;
+}
+.forgot-password a {
+  color: #469a4c;
+  font-weight: 600;
+  text-decoration: underline;
+}
+.remember-wrapper label {
+  font-weight: 600;
+  cursor: pointer;
+}
+.remember-wrapper input:checked {
+  background-color: #469a4c;
+  border-color: #469a4c;
+}
+.registration-form-wrapper {
+  padding: 50px 50px;
+}
+.form-footer-link {
+  padding-top: 10px;
+}
+.form-footer-link p {
+  text-align: end;
+  font-size: 14px;
+  font-weight: 600;
+}
+.form-footer-link a {
+  color: #469a4c;
+}

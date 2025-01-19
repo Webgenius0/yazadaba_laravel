@@ -10,7 +10,6 @@
                 <img src="{{ asset('backend/images/logo.png') }}" style="height: 95px;width: 176px;" alt="Default Logo">
             @endif
         </a>
-
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
             <i class="bx bx-chevron-left bx-sm align-middle"></i>
         </a>
@@ -35,6 +34,14 @@
             <a href="{{ route('admin.user.index') }}" class="menu-link">
                 <i class='menu-icon tf-icons bx bxs-badge-check'></i>
                 <div data-i18n="Layouts">Users</div>
+            </a>
+        </li>
+        <!-- Category End  -->
+        <!-- Published Request start -->
+        <li class="menu-item {{ Request::routeIs('course.publication.request*') || Request::routeIs('course.publication.request') ? 'active' : '' }}">
+            <a href="{{ route('course.publication.request') }}" class="menu-link">
+                <i class='menu-icon tf-icons bx bxs-badge-check'></i>
+                <div data-i18n="Layouts">Published Request</div>
             </a>
         </li>
         <!-- Category End  -->

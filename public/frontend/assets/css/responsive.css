@@ -1,0 +1,67 @@
+@media only screen and (min-width: 1600px) {
+  .container {
+    max-width: 1520px;
+  }
+}
+
+/* laptop devices */
+@media only screen and (max-width: 1399px) {
+  .login-form-wrapper {
+    padding: 50px 40px;
+  }
+  .login-form-wrapper .login-title h2 {
+    font-size: 40px;
+  }
+  .login-form-wrapper .login-title {
+    margin-bottom: 30px;
+  }
+}
+
+/* large tablet devices */
+@media only screen and (max-width: 1199px) {
+  .input-item input {
+    font-size: 16px;
+    padding: 14px;
+    border-radius: 14px;
+    -webkit-border-radius: 14px;
+    -moz-border-radius: 14px;
+    -ms-border-radius: 14px;
+    -o-border-radius: 14px;
+  }
+  .input-item label {
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+  .login-button {
+    padding: 14px;
+  }
+}
+
+/* medium tablet devices */
+@media only screen and (max-width: 991px) {
+}
+
+/* small tablet devices */
+@media only screen and (max-width: 767px) {
+  .login-form-wrapper .login-title h2 {
+    font-size: 32px;
+  }
+}
+
+/* large mobile devices */
+@media only screen and (max-width: 575px) {
+}
+
+/* mobile devices */
+@media only screen and (max-width: 479px) {
+  .login-form-wrapper {
+    padding: 30px 20px;
+  }
+  .login-form-wrapper .login-title h2 {
+    font-size: 26px;
+  }
+}
+
+/* extra small devices */
+@media only screen and (max-width: 374px) {
+}

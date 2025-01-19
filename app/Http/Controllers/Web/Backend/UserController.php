@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Backend;
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\PublishRequest;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -31,26 +32,4 @@ class UserController extends Controller
             return redirect()->back()->with('t-error', 'Something went wrong! Please try again.');
         }
     }
-
-//    public function destroy($id)
-//    {
-//        // Find the user by ID
-//        $user = User::find($id);
-//        // Check if the user has records in any related tables
-//        $hasCourseEnrollments = $user->courseEnrollments()->exists();
-//        $hasCourseModules = $user->courseModules()->exists();
-//        $hasReviews = $user->reviews()->exists();
-//        $hasWithdrawRequests = $user->withdrawRequests()->exists();
-//        if ($hasCourseEnrollments || $hasCourseModules || $hasReviews || $hasWithdrawRequests) {
-//            return response()->json(['t-success' => false, 'message' => 'User cannot be deleted due to existing associated data.'], 400);
-//        }
-//        if($user->avatar){
-//            Helper::fileDelete($user->avatar);
-//        }
-//        // Otherwise, delete the user
-//        $user->delete();
-//        // Return a success message
-//        return response()->json(['t-success' => true, 'message' => 'Deleted successfully.']);
-//    }
-
 }

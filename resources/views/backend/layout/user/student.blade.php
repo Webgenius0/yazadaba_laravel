@@ -1,5 +1,7 @@
 @extends('backend.app')
-@section('title', 'Courses List')
+
+@section('title', ' Students List')
+
 @push('style')
     <style>
         .custom-confirm-button {
@@ -22,6 +24,7 @@
 
         .custom-cancel-button:hover {
             background-color: #f51808;
+            ;
             /* Darker red */
         }
     </style>
@@ -34,20 +37,21 @@
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Category List</h4>
+                        <h4 class="card-title">Students List</h4>
                         <div style="display: flex;justify-content: end;">
-                            <a href="{{ route('admin.category.create') }}"  class="btn btn-primary">Add Category</a>
+                            <a href="{{ route('admin.student.create') }}" class="btn btn-primary">Add Student</a>
                         </div>
                         <div class="table-responsive mt-4 p-4">
                             <table class="table table-hover" id="data-table">
                                 <thead>
-                                <tr>
-                                    <th>SI</th>
-                                    <th>Name</th>
-                                    <th>Icon</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
+                                    <tr>
+                                        <th>SI</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>User Type</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
 
@@ -61,7 +65,6 @@
     </div>
 
 @endsection
-
 
 @push('script')
     {{-- Datatable --}}
@@ -81,16 +84,13 @@
                     "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
                 }
             });
-
             if (!$.fn.DataTable.isDataTable('#data-table')) {
                 let dTable = $('#data-table').DataTable({
                     order: [],
                     lengthMenu: [
-                        [ 10, 25, 50, 100, 200, 500, -1 ],
-                        [ "10", "25", "50", "100", "200", "500", "All" ]
+                        [25, 50, 100, 200, 500, -1],
+                        [25, 50, 100, 200, 500, "All"]
                     ],
-
-                    pageLength: 10,
                     processing: true,
                     responsive: true,
                     serverSide: true,
@@ -100,12 +100,8 @@
                             <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
                             <span class="visually-hidden">Loading...</span>
                           </div>
-                            </div>`,
-                        lengthMenu: '_MENU_',
-                        search: '',
-                        searchPlaceholder: 'Search..'
+                            </div>`
                     },
-
 
                     scroller: {
                         loadingIndicator: false
@@ -113,16 +109,16 @@
                     pagingType: "full_numbers",
                     dom: "<'row justify-content-between table-topbar'<'col-md-2 col-sm-4 px-0'l><'col-md-2 col-sm-4 px-0'f>>tipr",
                     ajax: {
-                        url: "{{ route('admin.category.index') }}",
+                        url: "{{ route('admin.student') }}",
                         type: "get",
                     },
 
                     columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                    },
+                            data: 'DT_RowIndex',
+                            name: 'DT_RowIndex',
+                            orderable: false,
+                            searchable: false
+                        },
                         {
                             data: 'name',
                             name: 'name',
@@ -130,19 +126,23 @@
                             searchable: true
                         },
                         {
-                            data: 'icon',
-                            name: 'icon',
+                            data: 'email',
+                            name: 'email',
                             orderable: true,
                             searchable: true
                         },
-
+                        {
+                            data: 'role',
+                            name: 'role',
+                            orderable: true,
+                            searchable: true
+                        },
                         {
                             data: 'status',
                             name: 'status',
                             orderable: true,
                             searchable: true
                         },
-
                         {
                             data: 'action',
                             name: 'action',
@@ -157,6 +157,17 @@
                 });
             }
         });
+
+
+        // sweet alert something went wrong
+        const errorAlert = () => {
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "Something went wrong!",
+                footer: '<a href="#">Why do I have this issue?</a>'
+            });
+        }
 
         // Sweet alert Delete confirm
         const deleteAlert = (id) => {
@@ -179,7 +190,7 @@
         // deleting an auction
         const deleteAuction = (id) => {
             try {
-                let url = '{{ route('admin.category.destroy', ':id') }}';
+                let url = '{{ route('admin.lecturer.destroy', ':id') }}';
                 let csrfToken = `{{ csrf_token() }}`;
                 $.ajax({
                     type: "DELETE",
@@ -189,11 +200,10 @@
                     },
                     success: (response) => {
                         $('#data-table').DataTable().ajax.reload();
-
                         if (response.success === true) {
                             Swal.fire({
                                 title: "Deleted!",
-                                text: "Data has been deleted.",
+                                text: "Auction has been deleted.",
                                 icon: "success"
                             });
                         } else if (response.errors) {
@@ -212,6 +222,8 @@
                 console.log(e)
             }
         }
+
+
         function showStatusChangeAlert(id) {
             event.preventDefault();
 
@@ -231,16 +243,16 @@
 
         // Status Change
         function statusChange(id) {
-            var url = '{{ route('admin.category.status', ':id') }}';
-            url = url.replace(':id', id);
-
+            var url = '{{ route('admin.lecturer.changeStatus', ':id') }}';
             $.ajax({
                 type: "GET",
-                url: url,
+                url: url.replace(':id', id),
                 success: function(resp) {
                     console.log(resp);
+                    // Reloade DataTable
                     $('#data-table').DataTable().ajax.reload();
                     if (resp.success === true) {
+                        // show toast message
                         toastr.success(resp.message);
                     } else if (resp.errors) {
                         toastr.error(resp.errors[0]);
@@ -249,11 +261,9 @@
                     }
                 }, // success end
                 error: function(error) {
-                    toastr.error('Something went wrong, please try again.');
-                }
+                    // location.reload();
+                } // Erro
             });
         }
-
     </script>
 @endpush
-

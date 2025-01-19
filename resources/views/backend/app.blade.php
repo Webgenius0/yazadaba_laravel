@@ -1,8 +1,9 @@
+@php
+    $setting = \App\Models\SystemSetting::first();
+@endphp
 <!DOCTYPE html>
-
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="light-style layout-menu-fixed" dir="ltr"
     data-theme="theme-default" data-assets-path="../assets/" data-template="vertical-menu-template-free">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport"
@@ -12,17 +13,12 @@
 
     <meta name="description" content="" />
 
-    <!-- Favicon -->
-    {{-- <link rel="icon" type="image/x-icon" href="{{ asset('backend/assets/img/favcon/favicon.ico') }}" /> --}}
-    {{-- <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $setting->favicon) ?? asset('frontend/images/favicon.png') }}" /> --}}
     @if (!empty($setting->favicon))
         <link rel="icon" type="image/x-icon" href="{{ asset($setting->favicon) }}">
     @else
-        <link rel="icon" type="image/x-icon" href="{{ asset('frontend/images/logo.png') }}">
+        <link rel="icon" type="image/x-icon" href="{{ asset('backend/images/logo.png') }}">
     @endif
-
     @include('backend.partials.style')
-
 </head>
 
 <body>

@@ -1,5 +1,7 @@
 @extends('backend.app')
-@section('title', 'Courses List')
+
+@section('title', 'Published Request List')
+
 @push('style')
     <style>
         .custom-confirm-button {
@@ -34,18 +36,15 @@
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Category List</h4>
-                        <div style="display: flex;justify-content: end;">
-                            <a href="{{ route('admin.category.create') }}"  class="btn btn-primary">Add Category</a>
-                        </div>
+                        <h4 class="card-title">Published Request List</h4>
                         <div class="table-responsive mt-4 p-4">
                             <table class="table table-hover" id="data-table">
                                 <thead>
                                 <tr>
                                     <th>SI</th>
-                                    <th>Name</th>
-                                    <th>Icon</th>
-                                    <th>Status</th>
+                                    <th>User Name</th>
+                                    <th>Course Name</th>
+                                    <th>Published Status</th>
                                     <th>Actions</th>
                                 </tr>
                                 </thead>
@@ -113,10 +112,9 @@
                     pagingType: "full_numbers",
                     dom: "<'row justify-content-between table-topbar'<'col-md-2 col-sm-4 px-0'l><'col-md-2 col-sm-4 px-0'f>>tipr",
                     ajax: {
-                        url: "{{ route('admin.category.index') }}",
+                        url: "{{ route('course.publication.request') }}",
                         type: "get",
                     },
-
                     columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',
@@ -124,25 +122,24 @@
                         searchable: false
                     },
                         {
-                            data: 'name',
-                            name: 'name',
+                            data: 'user_name',
+                            name: 'user_name',
                             orderable: true,
                             searchable: true
                         },
                         {
-                            data: 'icon',
-                            name: 'icon',
+                            data: 'course_name',
+                            name: 'course_name',
                             orderable: true,
                             searchable: true
                         },
 
                         {
-                            data: 'status',
-                            name: 'status',
+                            data: 'publish_status',
+                            name: 'publish_status',
                             orderable: true,
                             searchable: true
                         },
-
                         {
                             data: 'action',
                             name: 'action',
@@ -253,7 +250,6 @@
                 }
             });
         }
-
     </script>
 @endpush
 
